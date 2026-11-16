@@ -31,4 +31,13 @@ const CONFIG = {
   },
 
   lives: 3,
+  powerUps: {
+    types: [
+      { expand: { color: '#ca7494' } },
+      { shrink: { color: '#b789d1' } },
+      { fast: { color: '#8487ca' } },
+      { slow: { color: '#87b6c9' } },
+      { extraLife: { color: '#7dbeb7' } },
+    ],
+  },
 };
