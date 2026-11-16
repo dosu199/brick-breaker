@@ -1,22 +1,23 @@
 class Brick {
-  constructor(x, y, width, height, color) {
+  constructor(x, y, width, height, color, grid) {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
     this.color = color;
     this.alive = true;
+    this.grid = grid;
   }
 
-  draw(ctx) {
+    draw(ctx) {
     if (!this.alive) return;
 
     ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+    ctx.beginPath();
+    ctx.roundRect(this.x, this.y, this.width, this.height, 4);
+    ctx.fill();
   }
 }
-
-// The grid of bricks.
 
 class Bricks {
   constructor() {
@@ -29,7 +30,7 @@ class Bricks {
     this.colors = CONFIG.bricks.colors;
     this.padding = CONFIG.bricks.padding;
 
-    this.build();
+    this.grid = this.build();
   }
 
   build() {
@@ -42,6 +43,7 @@ class Bricks {
         this.colors[row % this.colors.length]
       ))
     );
+    return this.grid;
   }
 
   remaining() {

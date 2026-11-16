@@ -2,34 +2,33 @@
 
 const CONFIG = {
   canvas: {
-    width: 800,
-    height: 600,
+    width: 1400,
+    height: 800,
   },
 
   paddle: {
     width: 100,
     height: 12,
     speed: 7,
-    color: '#4fc3f7',
+    color: '#6366f1',
   },
 
   ball: {
     radius: 8,
     speed: 5,
-    color: '#fff',
+    color: '#ffffff',
   },
 
   bricks: {
     rows: 5,
-    cols: 10,
+    cols: 18,
     width: 70,
     height: 20,
-    padding: 8,
+    padding: 7,
     offsetTop: 10,
     offsetLeft: 10,
-    colors: ['#e57373', '#ffb74d', '#fff176', '#81c784', '#64b5f6'],
+    colors: ['#ff4d8d', '#c86bfa', '#7c83ff', '#38bdf8', '#2dd4bf'],
   },
-
   lives: 3,
   powerUps: {
     types: [
