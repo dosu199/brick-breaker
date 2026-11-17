@@ -191,9 +191,14 @@ class Game {
   }
 
   updateHud() {
-    this.hud.score.textContent = `Score: ${this.score}`;
-    this.hud.level.textContent = `Level ${this.level + 1}/${CONFIG.levels.maps.length}`;
-    this.hud.lives.textContent = `Lives: ${this.lives}`;
+    const { maps } = CONFIG.levels;
+    this.hud.update({
+      score: this.score,
+      level: this.level,
+      levelCount: maps.length,
+      levelName: maps[this.level].name,
+      lives: this.lives,
+    });
   }
 
   loop(now) {

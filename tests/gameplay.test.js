@@ -19,7 +19,7 @@ function createGame(exports) {
     clientHeight: WORLD.height,
     addEventListener() {},
   };
-  return new exports.Game(canvas, { score: {}, level: {}, lives: {} });
+  return new exports.Game(canvas, { state: null, update(state) { this.state = state; } });
 }
 
 function clickAndStep(game, now = 0) {
@@ -319,7 +319,7 @@ test('clearing a level moves to the next one, keeping score and lives, with a fa
   assert.equal(game.lives, 2, 'lives carry over');
   assert.equal(game.bricks.remaining(), countBricks(CONFIG.levels.maps[1].rows));
   assert.equal(game.ball.speed, CONFIG.ball.speed * (1 + CONFIG.levels.speedIncrease));
-  assert.equal(game.hud.level.textContent, `Level 2/${CONFIG.levels.maps.length}`);
+  assert.deepEqual({ ...game.hud.state }, { score: 120, level: 1, levelCount: CONFIG.levels.maps.length, levelName: CONFIG.levels.maps[1].name, lives: 2 });
 
   game.update(0);
   assert.equal(game.ball.dx, game.ball.speed, 'the ball launches at the level speed');

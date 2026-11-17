@@ -7,12 +7,23 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div id="hud">
-    <span id="score">Score: 0</span>
-    <span id="level">Level 1/5</span>
-    <span id="hint">F: fullscreen</span>
-    <span id="lives">Lives: 3</span>
-  </div>
+  <header id="hud">
+    <div class="stat">
+      <span class="label">Score</span>
+      <span id="score"><span id="score-zeros">00000</span><span id="score-value">0</span></span>
+    </div>
+    <div class="stat stat-center">
+      <span class="label">Level <span id="level-name"></span></span>
+      <div id="level-track"></div>
+    </div>
+    <div class="stat stat-right">
+      <div class="stat lives-stat">
+        <span class="label">Lives</span>
+        <div id="lives" role="img"></div>
+      </div>
+      <span id="hint"><kbd>F</kbd> Fullscreen</span>
+    </div>
+  </header>
 
   <canvas id="game"></canvas>
 
@@ -26,6 +37,7 @@
   <script src="js/bricks.js"></script>
   <script src="js/collision.js"></script>
   <script src="js/powerup.js"></script>
+  <script src="js/hud.js"></script>
   <script src="js/game.js"></script>
   <script src="js/main.js"></script>
 

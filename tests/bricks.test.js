@@ -152,7 +152,7 @@ test('game drawing never rebuilds or revives destroyed bricks', () => {
     clientWidth: 700,
     clientHeight: 400,
     getContext: () => ctx,
-  }, { score: {}, level: {}, lives: {} });
+  }, { update() {} });
   const grid = game.bricks.grid;
   const brick = grid[0][0];
   brick.alive = false;

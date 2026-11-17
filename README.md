@@ -51,6 +51,7 @@ brick-breaker/
 │   ├── bricks.js     Brick entity + Bricks grid
 │   ├── collision.js  circle-rect checks and bounce logic
 │   ├── powerup.js    falling power-up
+│   ├── hud.js        score, level progress and lives bar above the game
 │   ├── game.js       game state, levels, resize/scaling, fixed-timestep loop
 │   └── main.js       entry point, resize + fullscreen key
 └── tests/            node:test suites

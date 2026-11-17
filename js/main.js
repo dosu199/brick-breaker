@@ -6,11 +6,7 @@ Assets.load([
   ...CONFIG.powerUps.types.map(t => t.image),
 ]);
 
-const game = new Game(document.getElementById('game'), {
-  score: document.getElementById('score'),
-  level: document.getElementById('level'),
-  lives: document.getElementById('lives'),
-});
+const game = new Game(document.getElementById('game'), new Hud(document.getElementById('hud')));
 
 window.addEventListener('resize', () => game.resize());
 
