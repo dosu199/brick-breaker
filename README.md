@@ -1,5 +1,7 @@
 # Brick Breaker
 
+Play game: https://dosu199.github.io/brick-breaker/
+
 Plain HTML + Canvas + JavaScript. No build step.
 
 ## Run
