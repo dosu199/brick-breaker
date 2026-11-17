@@ -12,7 +12,7 @@ const WORLD = { width: 700, height: 400 };
 const WALL = Array(5).fill('############');
 
 function loadClasses() {
-  return loadScripts(['config.js', 'assets.js', 'render.js', 'bricks.js', 'game.js'], ['CONFIG', 'Brick', 'Bricks', 'Game'], {
+  return loadScripts(['config.js', 'assets.js', 'render.js', 'bricks.js', 'particles.js', 'game.js'], ['CONFIG', 'Brick', 'Bricks', 'Game'], {
     Input: class { consumeLaunch() { return false; } },
     Paddle: NoopEntity,
     Ball: NoopEntity,

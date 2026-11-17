@@ -6,7 +6,7 @@ const WORLD = { width: 700, height: 400 };
 const WALL = Array(5).fill('############');
 const countBricks = rows => rows.join('').split('#').length - 1;
 
-const FILES = ['config.js', 'assets.js', 'render.js', 'starfield.js', 'input.js', 'paddle.js', 'ball.js', 'bricks.js', 'collision.js', 'powerup.js', 'game.js'];
+const FILES = ['config.js', 'assets.js', 'render.js', 'starfield.js', 'input.js', 'paddle.js', 'ball.js', 'bricks.js', 'collision.js', 'powerup.js', 'particles.js', 'game.js'];
 
 function load(globals = {}) {
   return loadScripts(FILES, ['CONFIG', 'Assets', 'Ball', 'Bricks', 'Collision', 'Game', 'Paddle', 'PowerUp', 'Starfield'], { Math, window: { addEventListener() {} }, ...globals });
@@ -370,4 +370,19 @@ test('the mouse position is converted from screen pixels to game units', () => {
   listeners.mousemove({ clientX: 401 });
 
   assert.equal(input.mouseX, 600, 'the middle of a half-size canvas is the middle of the world');
+});
+
+test('breaking a brick bursts particles in its color, and a new level clears them', () => {
+  const exports = load();
+  const game = createGame(exports);
+  const brick = game.bricks.grid[0][0];
+
+  game.handleBrickHits([brick]);
+
+  assert.equal(game.particles.rings.length, 1);
+  assert.equal(game.particles.rings[0].color, brick.color);
+  assert.ok(game.particles.sparks.some(s => s.color === brick.color));
+
+  game.startLevel(1);
+  assert.equal(game.particles.sparks.length, 0);
 });

@@ -66,6 +66,7 @@ brick-breaker/
 │   ├── bricks.js     Brick entity + Bricks grid
 │   ├── collision.js  circle-rect checks and bounce logic
 │   ├── powerup.js    falling power-up
+│   ├── particles.js  spark and shockwave explosions when bricks break
 │   ├── hud.js        score, level progress and lives bar above the game
 │   ├── game.js       game state, levels, resize/scaling, fixed-timestep loop
 │   └── main.js       entry point, resize + fullscreen key
@@ -105,6 +106,11 @@ A modern space theme. The nebula is a CSS background on the canvas
 neon sprites on top. Glows come from the canvas `shadowBlur` (the `glowColor` /
 `glowBlur` settings in `config.js`), not from the images, so the sprites stay
 tight to their hit areas.
+
+Breaking a brick bursts sparks in its color (some white-hot) with a faint
+shockwave ring (`CONFIG.particles`). They use additive blending for a cheap
+glow instead of `shadowBlur`, and are capped at `max` sparks so long fireball
+chains stay at 60 fps.
 
 **Performance:** `shadowBlur` and scaled SVGs are too slow to redraw every frame
 (a full screen of bricks dropped to ~15 fps). `drawCached` in `js/render.js`

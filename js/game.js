@@ -10,6 +10,7 @@ class Game {
     this.world = { width: 0, height: 0 };
     this.resize();
     this.starfield = new Starfield(this.world);
+    this.particles = new Particles();
 
     this.input = new Input(this.canvas, this.world);
     this.reset();
@@ -47,6 +48,7 @@ class Game {
     this.ball.speed = CONFIG.ball.speed * (1 + speedIncrease * level);
     this.powerUps = [];
     this.effectsUntil = {};
+    this.particles.clear();
     this.state = 'ready';
     this.updateHud();
   }
@@ -62,6 +64,7 @@ class Game {
   update(now) {
     const launch = this.input.consumeLaunch();
     this.starfield.update();
+    this.particles.update();
 
     if (this.isOver()) {
       if (launch) this.reset();
@@ -99,6 +102,7 @@ class Game {
 
     for (const brick of bricks) {
       this.score += CONFIG.bricks.points;
+      this.particles.burst(brick.x, brick.y, brick.width, brick.height, brick.color);
       if (Math.random() < CONFIG.powerUps.dropChance) {
         this.powerUps.push(new PowerUp(brick.x + brick.width / 2, brick.y + brick.height / 2, this.world));
       }
@@ -148,6 +152,7 @@ class Game {
     this.ctx.clearRect(0, 0, this.world.width, this.world.height);
     this.starfield.draw(this.ctx);
     this.bricks.draw(this.ctx);
+    this.particles.draw(this.ctx);
     this.powerUps.forEach(p => p.draw(this.ctx));
     this.paddle.draw(this.ctx);
     this.ball.draw(this.ctx);

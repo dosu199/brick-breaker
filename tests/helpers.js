@@ -29,6 +29,7 @@ function createDrawingContext() {
       if (this.path) this.rectangles.push({ ...this.path, color: this.fillStyle });
     },
     fillText() {},
+    stroke() {},
     setTransform() {},
     getTransform() {
       return { a: 1, b: 0 };

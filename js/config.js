@@ -53,6 +53,20 @@ const CONFIG = {
 
   lives: 3,
 
+  particles: {
+    count: 24,
+    speed: 4.2,
+    gravity: 0.14,
+    drag: 0.96,
+    life: 48,
+    minSize: 2,
+    maxSize: 4.5,
+    sparkChance: 0.25,
+    max: 600,
+    ringLife: 14,
+    ringScale: 0.55,
+  },
+
   levels: {
     speedIncrease: 0.08,
     maps: [
