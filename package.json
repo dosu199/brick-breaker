@@ -1,0 +1,13 @@
+{
+  "name": "brick-breaker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Brick Breaker in plain HTML, Canvas and JavaScript.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
