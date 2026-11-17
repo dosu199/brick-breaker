@@ -18,9 +18,13 @@ class Ball {
     this.dy = -this.speed;
   }
 
-  update() {
-    this.x += this.dx * this.speedScale;
-    this.y += this.dy * this.speedScale;
+  distancePerTick() {
+    return Math.hypot(this.dx, this.dy) * this.speedScale;
+  }
+
+  update(step = 1) {
+    this.x += this.dx * this.speedScale * step;
+    this.y += this.dy * this.speedScale * step;
 
     const maxX = this.world.width - this.radius;
     if (this.x < this.radius) {

@@ -386,3 +386,61 @@ test('breaking a brick bursts particles in its color, and a new level clears the
   game.startLevel(1);
   assert.equal(game.particles.sparks.length, 0);
 });
+
+test('power-ups multiply the doubled base ball speed', () => {
+  const exports = load();
+  const { CONFIG } = exports;
+  const game = createGame(exports);
+  clickAndStep(game);
+  const base = Math.hypot(CONFIG.ball.speed, CONFIG.ball.speed);
+
+  assert.equal(CONFIG.ball.speed, 10);
+  assert.equal(game.ball.distancePerTick(), base);
+
+  game.collectPowerUp('fast', 0);
+  game.applyEffects(1);
+  assert.equal(game.ball.distancePerTick(), base * CONFIG.effects.fastScale);
+
+  game.effectsUntil = {};
+  game.collectPowerUp('slow', 0);
+  game.applyEffects(1);
+  assert.equal(game.ball.distancePerTick(), base * CONFIG.effects.slowScale);
+});
+
+test('a very fast ball cannot skip through a brick in one frame', () => {
+  const exports = load();
+  const game = createGame(exports);
+  clickAndStep(game);
+  const brick = game.bricks.grid.at(-1).find(Boolean);
+  Object.assign(game.ball, {
+    x: brick.x + brick.width / 2,
+    y: brick.y + brick.height + game.ball.radius + 2,
+    dx: 0,
+    dy: -(brick.height + 4 * game.ball.radius),
+  });
+
+  game.update(0);
+
+  assert.equal(brick.alive, false, 'the brick in its path is hit');
+  assert.ok(game.ball.dy > 0, 'and the ball bounces back');
+  assert.ok(game.ball.y > brick.y, 'instead of ending up past it');
+});
+
+test('a very fast ball cannot skip through the paddle in one frame', () => {
+  const exports = load();
+  const game = createGame(exports);
+  clickAndStep(game);
+  const { paddle, ball } = game;
+  Object.assign(ball, {
+    x: paddle.x + paddle.width / 2,
+    y: paddle.y - ball.radius - 2,
+    dx: 0,
+    dy: paddle.height + 4 * ball.radius,
+  });
+
+  game.update(0);
+
+  assert.ok(ball.dy < 0, 'the ball bounces off the paddle');
+  assert.ok(ball.y <= paddle.y, 'and stays above it');
+  assert.equal(game.lives, exports.CONFIG.lives);
+});

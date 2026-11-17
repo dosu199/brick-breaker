@@ -85,15 +85,23 @@ class Game {
       return;
     }
 
-    this.ball.update();
-    Collision.ballPaddle(this.ball, this.paddle);
-    this.handleBrickHits(Collision.ballBricks(this.ball, this.bricks.grid));
+    this.moveBall();
     this.updatePowerUps(now);
 
     if (this.ball.isBelowScreen()) {
       this.loseLife();
     } else if (this.bricks.remaining() === 0) {
       this.state = this.isLastLevel() ? 'won' : 'levelComplete';
+    }
+  }
+
+  moveBall() {
+    const steps = Math.max(1, Math.ceil(this.ball.distancePerTick() / this.ball.radius));
+    for (let i = 0; i < steps; i++) {
+      this.ball.update(1 / steps);
+      Collision.ballPaddle(this.ball, this.paddle);
+      this.handleBrickHits(Collision.ballBricks(this.ball, this.bricks.grid));
+      if (this.ball.isBelowScreen()) return;
     }
   }
 

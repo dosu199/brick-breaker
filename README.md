@@ -88,6 +88,11 @@ Destroyed bricks may drop a power-up (`CONFIG.powerUps.dropChance`).
 Timed effects last `CONFIG.effects.durationMs`. Collecting the same one again
 restarts its timer instead of stacking. Losing a life clears all effects.
 
+The ball's base speed is `CONFIG.ball.speed`; `fast` and `slow` multiply it (x1.5,
+x0.6), and so does each level. To stay accurate at high speed the ball moves in
+sub-steps no longer than its radius, checking collisions at each one, so it can
+never skip through a brick or the paddle.
+
 ## Brick lifecycle
 `Brick` owns one brick's position, size, color, alive state, and drawing.
 `Bricks` creates and manages the grid from a level map, using the configured
