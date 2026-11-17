@@ -39,7 +39,8 @@ const CONFIG = {
 
   bricks: {
     height: 20,
-    maxWidth: 72,
+    maxWidth: 110,
+    gapRatio: 0.1,
     maxGridHeightRatio: 0.5,
     padding: 7,
     offsetTop: 20,

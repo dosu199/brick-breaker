@@ -16,8 +16,10 @@ The game is designed for a 1200x600 play area (`CONFIG.view`) and scales to the
 window by `min(width / 1200, height / 600)`, clamped between `minScale` (0.75)
 and `maxScale` (1.6). Paddle, ball, bricks and speeds all scale together, so the
 game looks and plays the same on a laptop or a big monitor; a wider window just
-shows a wider field. The HUD scales with the window too. Bricks are capped at
-`CONFIG.bricks.maxWidth` and the grid is centered; on short windows they get
+shows a wider field. The HUD scales with the window too. The brick grid spans the full
+width with gaps that grow with the bricks (`gapRatio`); only on extreme
+ultrawide screens do bricks hit `CONFIG.bricks.maxWidth`, and the grid is then
+centered. On short windows bricks get
 thinner so the grid never takes more than half the play area
 (`maxGridHeightRatio`).
 

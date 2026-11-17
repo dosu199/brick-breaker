@@ -58,9 +58,16 @@ class Bricks {
   }
 
   layout() {
-    const usableWidth = this.world.width - 2 * this.sideMargin - (this.cols - 1) * this.padding;
-    this.brickWidth = Math.min(CONFIG.bricks.maxWidth, usableWidth / this.cols);
-    const gridWidth = this.cols * this.brickWidth + (this.cols - 1) * this.padding;
+    const { maxWidth, gapRatio } = CONFIG.bricks;
+    const usableWidth = this.world.width - 2 * this.sideMargin;
+    const gaps = this.cols - 1;
+
+    let width = usableWidth / (this.cols + gaps * gapRatio);
+    if (width * gapRatio < this.padding) width = (usableWidth - gaps * this.padding) / this.cols;
+    this.brickWidth = Math.min(maxWidth, width);
+    this.gap = Math.max(this.padding, this.brickWidth * gapRatio);
+
+    const gridWidth = this.cols * this.brickWidth + gaps * this.gap;
     const left = (this.world.width - gridWidth) / 2;
 
     const maxGridHeight = this.world.height * CONFIG.bricks.maxGridHeightRatio - this.y;
@@ -69,7 +76,7 @@ class Bricks {
     this.grid.forEach((row, rowIndex) => {
       row.forEach((brick, colIndex) => {
         if (!brick) return;
-        brick.x = left + colIndex * (this.brickWidth + this.padding);
+        brick.x = left + colIndex * (this.brickWidth + this.gap);
         brick.y = this.y + rowIndex * (this.rowHeight + this.padding);
         brick.width = this.brickWidth;
         brick.height = this.rowHeight;
