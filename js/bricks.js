@@ -30,13 +30,12 @@ class Brick {
 }
 
 class Bricks {
-  constructor(world) {
+  constructor(world, map) {
     this.world = world;
+    this.map = map;
     this.y = CONFIG.bricks.offsetTop;
     this.sideMargin = CONFIG.bricks.sideMargin;
-    this.targetWidth = CONFIG.bricks.width;
     this.brickHeight = CONFIG.bricks.height;
-    this.rows = CONFIG.bricks.rows;
     this.colors = CONFIG.bricks.colors;
     this.padding = CONFIG.bricks.padding;
 
@@ -44,11 +43,13 @@ class Bricks {
   }
 
   build() {
-    const usableWidth = this.world.width - 2 * this.sideMargin + this.padding;
-    this.cols = Math.max(1, Math.floor(usableWidth / (this.targetWidth + this.padding)));
+    this.rows = this.map.length;
+    this.cols = Math.max(...this.map.map(line => line.length));
 
-    this.grid = Array.from({ length: this.rows }, (_, row) =>
-      Array.from({ length: this.cols }, () => new Brick(0, 0, 0, this.brickHeight, this.colors[row % this.colors.length]))
+    this.grid = this.map.map((line, row) =>
+      Array.from({ length: this.cols }, (_, col) => line[col] === '#'
+        ? new Brick(0, 0, 0, this.brickHeight, this.colors[row % this.colors.length])
+        : null)
     );
     this.layout();
     return this.grid;

@@ -31,15 +31,24 @@ class Game {
   reset() {
     this.paddle = new Paddle(this.world);
     this.ball = new Ball(this.world);
-    this.bricks = new Bricks(this.world);
-    this.powerUps = [];
-    this.effectsUntil = {};
-
     this.score = 0;
     this.lives = CONFIG.lives;
-    this.state = 'ready';
+    this.startLevel(0);
+  }
 
+  startLevel(level) {
+    const { maps, speedIncrease } = CONFIG.levels;
+    this.level = level;
+    this.bricks = new Bricks(this.world, maps[level].rows);
+    this.ball.speed = CONFIG.ball.speed * (1 + speedIncrease * level);
+    this.powerUps = [];
+    this.effectsUntil = {};
+    this.state = 'ready';
     this.updateHud();
+  }
+
+  isLastLevel() {
+    return this.level === CONFIG.levels.maps.length - 1;
   }
 
   isOver() {
@@ -52,6 +61,11 @@ class Game {
 
     if (this.isOver()) {
       if (launch) this.reset();
+      return;
+    }
+
+    if (this.state === 'levelComplete') {
+      if (launch) this.startLevel(this.level + 1);
       return;
     }
 
@@ -72,7 +86,7 @@ class Game {
     if (this.ball.isBelowScreen()) {
       this.loseLife();
     } else if (this.bricks.remaining() === 0) {
-      this.state = 'won';
+      this.state = this.isLastLevel() ? 'won' : 'levelComplete';
     }
   }
 
@@ -134,32 +148,51 @@ class Game {
     this.paddle.draw(this.ctx);
     this.ball.draw(this.ctx);
 
-    if (this.isOver()) this.drawEndMessage();
+    const message = this.currentMessage();
+    if (message) this.drawMessage(message);
   }
 
-  drawEndMessage() {
+  currentMessage() {
+    switch (this.state) {
+      case 'won':
+        return { title: 'MISSION COMPLETE', subtitle: 'Click to play again', glow: '#22d3ee' };
+      case 'lost':
+        return { title: 'GAME OVER', subtitle: 'Click to play again', glow: '#ff2e88' };
+      case 'levelComplete': {
+        const next = CONFIG.levels.maps[this.level + 1];
+        return {
+          title: `LEVEL ${this.level + 1} CLEAR`,
+          subtitle: `Click for level ${this.level + 2}: ${next.name}`,
+          glow: '#00e0b8',
+        };
+      }
+      default:
+        return null;
+    }
+  }
+
+  drawMessage({ title, subtitle, glow }) {
     const centerX = this.world.width / 2;
     const centerY = this.world.height / 2;
-
-    const won = this.state === 'won';
     const font = 'system-ui, "Segoe UI", sans-serif';
 
     this.ctx.fillStyle = 'rgba(2, 3, 10, 0.55)';
     this.ctx.fillRect(0, 0, this.world.width, this.world.height);
 
     this.ctx.textAlign = 'center';
-    withGlow(this.ctx, won ? '#22d3ee' : '#ff2e88', 20, () => {
+    withGlow(this.ctx, glow, 20, () => {
       this.ctx.fillStyle = '#f8fafc';
       this.ctx.font = `700 44px ${font}`;
-      this.ctx.fillText(won ? 'MISSION COMPLETE' : 'GAME OVER', centerX, centerY);
+      this.ctx.fillText(title, centerX, centerY);
     });
     this.ctx.fillStyle = '#94a3b8';
     this.ctx.font = `500 16px ${font}`;
-    this.ctx.fillText('Click to play again', centerX, centerY + 38);
+    this.ctx.fillText(subtitle, centerX, centerY + 38);
   }
 
   updateHud() {
     this.hud.score.textContent = `Score: ${this.score}`;
+    this.hud.level.textContent = `Level ${this.level + 1}/${CONFIG.levels.maps.length}`;
     this.hud.lives.textContent = `Lives: ${this.lives}`;
   }
 

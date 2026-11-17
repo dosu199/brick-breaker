@@ -5,13 +5,34 @@ Plain HTML + Canvas + JavaScript. No build step.
 ## Run
 Open `index.html` in a browser.
 
-Move the mouse to steer the paddle and click to launch the ball. After you win
-or lose, click to play again. Press **F** to toggle fullscreen.
+Move the mouse to steer the paddle and click to launch the ball. Clear all five
+levels to win; after you win or lose, click to play again. Press **F** to toggle
+fullscreen.
 
 The game fills the browser window, leaving a gutter around the play area
 (`--gutter` in `css/style.css`). Objects are drawn at their normal size: a bigger
-window gives a bigger field. Each new game fits as many brick columns as the
-width allows, and resizing mid-game stretches the existing bricks to fit.
+window gives a bigger field, and the bricks stretch to span its width.
+
+## Levels
+There are five levels: Wall, Pyramid, Diamond, Checker and Invader. Each uses the
+same bricks in a different shape. Clearing a level shows a banner; click to start
+the next one. Score and lives carry over, and the ball gets
+`CONFIG.levels.speedIncrease` (8%) faster each level. Losing all lives sends you
+back to level 1.
+
+Levels are text maps in `CONFIG.levels.maps`: `#` is a brick, `.` is a gap, and
+each row gets the next brick color. All rows of a map must be the same length.
+
+```
+name: 'Pyramid',
+rows: [
+  '.....##.....',
+  '....####....',
+  '...######...',
+  '..########..',
+  '.##########.',
+],
+```
 
 ## Structure
 ```
@@ -20,7 +41,7 @@ brick-breaker/
 ├── css/style.css
 ├── img/            SVG sprites (paddle, ball, comet, brick panel, power-up badges)
 ├── js/
-│   ├── config.js     all settings (sizes, speeds, colors, power-ups, sprites)
+│   ├── config.js     all settings (sizes, speeds, colors, power-ups, sprites, level maps)
 │   ├── assets.js     image loading (shapes are drawn until images load)
 │   ├── render.js     drawing helpers (neon glow)
 │   ├── starfield.js  drifting, twinkling star background
@@ -30,7 +51,7 @@ brick-breaker/
 │   ├── bricks.js     Brick entity + Bricks grid
 │   ├── collision.js  circle-rect checks and bounce logic
 │   ├── powerup.js    falling power-up
-│   ├── game.js       game state, resize/scaling, fixed-timestep loop
+│   ├── game.js       game state, levels, resize/scaling, fixed-timestep loop
 │   └── main.js       entry point, resize + fullscreen key
 └── tests/            node:test suites
 ```
@@ -52,8 +73,9 @@ restarts its timer instead of stacking. Losing a life clears all effects.
 
 ## Brick lifecycle
 `Brick` owns one brick's position, size, color, alive state, and drawing.
-`Bricks` creates and manages the grid, using the configured offsets and padding.
-The grid is built when `Bricks` is constructed. Call `build()` again only when
+`Bricks` creates and manages the grid from a level map, using the configured
+offsets and padding; gaps in the map are `null` cells. The grid is built when
+`Bricks` is constructed. Call `build()` again only when
 intentionally resetting or rebuilding the board; it creates new, alive bricks.
 Drawing uses each brick's stored coordinates without changing game state, so
 rendering and collision detection can use the same positions.

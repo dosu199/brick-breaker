@@ -38,6 +38,7 @@ body {
 }
 
 #score,
+#level,
 #lives {
   color: var(--accent);
   text-shadow: 0 0 12px rgba(34, 211, 238, 0.6);

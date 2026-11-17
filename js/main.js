@@ -8,6 +8,7 @@ Assets.load([
 
 const game = new Game(document.getElementById('game'), {
   score: document.getElementById('score'),
+  level: document.getElementById('level'),
   lives: document.getElementById('lives'),
 });
 

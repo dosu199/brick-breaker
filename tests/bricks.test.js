@@ -9,6 +9,7 @@ const NoopEntity = class {
 };
 
 const WORLD = { width: 700, height: 400 };
+const WALL = Array(5).fill('############');
 
 function loadClasses() {
   return loadScripts(['config.js', 'assets.js', 'render.js', 'bricks.js', 'game.js'], ['CONFIG', 'Brick', 'Bricks', 'Game'], {
@@ -19,46 +20,40 @@ function loadClasses() {
   });
 }
 
-test('construction fits as many target-width columns as the world allows', () => {
+test('construction builds bricks from the level map and leaves gaps empty', () => {
   const { CONFIG, Brick, Bricks } = loadClasses();
-  const bricks = new Bricks({ ...WORLD });
   const settings = CONFIG.bricks;
-  const cols = Math.floor((WORLD.width - 2 * settings.sideMargin + settings.padding) / (settings.width + settings.padding));
-  const brickWidth = (WORLD.width - 2 * settings.sideMargin - (cols - 1) * settings.padding) / cols;
+  const bricks = new Bricks({ ...WORLD }, ['#.#', '.##']);
+  const brickWidth = (WORLD.width - 2 * settings.sideMargin - 2 * settings.padding) / 3;
 
-  assert.equal(bricks.cols, cols);
-  assert.ok(brickWidth >= settings.width && brickWidth < settings.width + (settings.width + settings.padding) / cols);
+  assert.equal(bricks.rows, 2);
+  assert.equal(bricks.cols, 3);
+  assert.equal(bricks.remaining(), 4);
+  assert.equal(bricks.grid[0][1], null);
+  assert.equal(bricks.grid[1][0], null);
 
-  assert.equal(bricks.grid.length, settings.rows);
-  assert.notEqual(bricks.grid[0], bricks.grid[1]);
-  assert.notEqual(bricks.grid[0][0], bricks.grid[0][1]);
-  assert.equal(bricks.remaining(), settings.rows * cols);
-
-  for (let row = 0; row < settings.rows; row++) {
-    assert.equal(bricks.grid[row].length, cols);
-    for (let col = 0; col < cols; col++) {
-      const brick = bricks.grid[row][col];
-      assert.ok(brick instanceof Brick);
-      assert.equal(brick.x, settings.sideMargin + col * (brickWidth + settings.padding));
-      assert.equal(brick.y, settings.offsetTop + row * (settings.height + settings.padding));
-      assert.equal(brick.width, brickWidth);
-      assert.equal(brick.height, settings.height);
-      assert.equal(brick.color, settings.colors[row % settings.colors.length]);
-      assert.equal(brick.alive, true);
-    }
+  for (const [row, col] of [[0, 0], [0, 2], [1, 1], [1, 2]]) {
+    const brick = bricks.grid[row][col];
+    assert.ok(brick instanceof Brick);
+    assert.equal(brick.x, settings.sideMargin + col * (brickWidth + settings.padding));
+    assert.equal(brick.y, settings.offsetTop + row * (settings.height + settings.padding));
+    assert.equal(brick.width, brickWidth);
+    assert.equal(brick.height, settings.height);
+    assert.equal(brick.color, settings.colors[row % settings.colors.length]);
+    assert.equal(brick.alive, true);
   }
 
-  const lastBrick = bricks.grid[0][cols - 1];
+  const lastBrick = bricks.grid[0][2];
   assert.ok(Math.abs(lastBrick.x + lastBrick.width - (WORLD.width - settings.sideMargin)) < 1e-9);
 });
 
 test('build uses instance settings, cycles colors, and resets the board', () => {
   const { Bricks } = loadClasses();
-  const bricks = new Bricks({ width: 67, height: 400 });
+  const bricks = new Bricks({ width: 67, height: 400 }, ['##', '##', '##']);
   const oldBrick = bricks.grid[0][0];
   oldBrick.alive = false;
   Object.assign(bricks, {
-    y: 24, sideMargin: 12, rows: 3, targetWidth: 20,
+    y: 24, sideMargin: 12,
     brickHeight: 10, padding: 3,
     colors: ['red', 'blue'],
   });
@@ -81,7 +76,7 @@ test('build uses instance settings, cycles colors, and resets the board', () => 
 test('layout after a resize stretches bricks and keeps destroyed ones destroyed', () => {
   const { Bricks } = loadClasses();
   const world = { ...WORLD };
-  const bricks = new Bricks(world);
+  const bricks = new Bricks(world, WALL);
   const brick = bricks.grid[1][2];
   const oldWidth = brick.width;
   brick.alive = false;
@@ -116,7 +111,7 @@ test('a brick draws itself only while alive', () => {
 
 test('drawing uses stored positions and preserves dead or missing bricks across frames', () => {
   const { Bricks } = loadClasses();
-  const bricks = new Bricks({ ...WORLD });
+  const bricks = new Bricks({ ...WORLD }, WALL);
   const firstBrick = bricks.grid[0][0];
   firstBrick.x = 101;
   firstBrick.y = 202;
@@ -157,7 +152,7 @@ test('game drawing never rebuilds or revives destroyed bricks', () => {
     clientWidth: 700,
     clientHeight: 400,
     getContext: () => ctx,
-  }, { score: {}, lives: {} });
+  }, { score: {}, level: {}, lives: {} });
   const grid = game.bricks.grid;
   const brick = grid[0][0];
   brick.alive = false;
@@ -169,7 +164,8 @@ test('game drawing never rebuilds or revives destroyed bricks', () => {
   assert.equal(game.bricks.grid, grid);
   assert.equal(game.bricks.grid[0][0], brick);
   assert.equal(brick.alive, false);
-  assert.equal(game.bricks.remaining(), CONFIG.bricks.rows * game.bricks.cols - 1);
+  const firstLevelBricks = CONFIG.levels.maps[0].rows.join('').split('#').length - 1;
+  assert.equal(game.bricks.remaining(), firstLevelBricks - 1);
   assert.equal(ctx.rectangles.length, game.bricks.remaining());
   assert.deepEqual(ctx.rectangles, firstFrame);
 });

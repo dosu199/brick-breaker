@@ -6,6 +6,7 @@ class Ball {
     this.y = 0;
     this.dx = 0;
     this.dy = 0;
+    this.speed = CONFIG.ball.speed;
     this.speedScale = 1;
     this.fireball = false;
   }
@@ -13,8 +14,8 @@ class Ball {
   reset(paddle) {
     this.x = paddle.x + paddle.width / 2;
     this.y = paddle.y - this.radius;
-    this.dx = CONFIG.ball.speed;
-    this.dy = -CONFIG.ball.speed;
+    this.dx = this.speed;
+    this.dy = -this.speed;
   }
 
   update() {

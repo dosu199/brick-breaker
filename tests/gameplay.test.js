@@ -3,6 +3,8 @@ const test = require('node:test');
 const { loadScripts, createDrawingContext } = require('./helpers');
 
 const WORLD = { width: 700, height: 400 };
+const WALL = Array(5).fill('############');
+const countBricks = rows => rows.join('').split('#').length - 1;
 
 const FILES = ['config.js', 'assets.js', 'render.js', 'starfield.js', 'input.js', 'paddle.js', 'ball.js', 'bricks.js', 'collision.js', 'powerup.js', 'game.js'];
 
@@ -17,7 +19,7 @@ function createGame(exports) {
     clientHeight: WORLD.height,
     addEventListener() {},
   };
-  return new exports.Game(canvas, { score: {}, lives: {} });
+  return new exports.Game(canvas, { score: {}, level: {}, lives: {} });
 }
 
 function clickAndStep(game, now = 0) {
@@ -35,7 +37,7 @@ test('circleRect reports overlap and the offset from the closest point', () => {
 
 test('a normal ball bounces off the first brick it hits', () => {
   const { Ball, Bricks, Collision } = load();
-  const bricks = new Bricks({ ...WORLD });
+  const bricks = new Bricks({ ...WORLD }, WALL);
   const target = bricks.grid[0][0];
   const ball = new Ball({ ...WORLD });
   Object.assign(ball, { x: target.x + target.width / 2, y: target.y + target.height + 5, dx: 1, dy: -5 });
@@ -50,7 +52,7 @@ test('a normal ball bounces off the first brick it hits', () => {
 
 test('a fireball destroys every brick it touches without bouncing', () => {
   const { Ball, Bricks, Collision } = load();
-  const bricks = new Bricks({ ...WORLD });
+  const bricks = new Bricks({ ...WORLD }, WALL);
   const [left, right] = bricks.grid[0];
   const ball = new Ball({ ...WORLD });
   ball.fireball = true;
@@ -133,7 +135,8 @@ test('clicking after game over starts a fresh game', () => {
   assert.equal(game.state, 'ready');
   assert.equal(game.score, 0);
   assert.equal(game.lives, exports.CONFIG.lives);
-  assert.equal(game.bricks.remaining(), exports.CONFIG.bricks.rows * game.bricks.cols);
+  assert.equal(game.level, 0);
+  assert.equal(game.bricks.remaining(), countBricks(exports.CONFIG.levels.maps[0].rows));
 });
 
 test('the world matches the canvas size 1:1 and is backed by device pixels', () => {
@@ -158,9 +161,6 @@ test('the world matches the canvas size 1:1 and is backed by device pixels', () 
   assert.equal(game.bricks.cols, cols, 'resizing mid-game keeps the same bricks');
   assert.ok(Math.abs(lastBrick.x + lastBrick.width - (1800 - CONFIG.bricks.sideMargin)) < 1e-9,
     'bricks stretch to the new width');
-
-  game.reset();
-  assert.ok(game.bricks.cols > cols, 'a new game fits more columns');
 });
 
 function fakeLoadedImage(Assets, path, naturalWidth, naturalHeight) {
@@ -267,7 +267,7 @@ test('sprites are painted once per look and then copied from the cache', () => {
     }
   }
   const { CONFIG, Bricks } = load({ OffscreenCanvas: FakeOffscreenCanvas });
-  const bricks = new Bricks({ ...WORLD });
+  const bricks = new Bricks({ ...WORLD }, WALL);
   let paints = 0;
   for (const brick of bricks.grid.flat()) {
     const paint = brick.paint.bind(brick);
@@ -282,4 +282,62 @@ test('sprites are painted once per look and then copied from the cache', () => {
   const brickCount = bricks.rows * bricks.cols;
   assert.equal(ctx.images.length, 2 * brickCount, 'every brick is copied from its cached sprite each frame');
   assert.ok(ctx.images.every(call => call.image instanceof FakeOffscreenCanvas));
+});
+
+function clearBoard(game) {
+  for (const brick of game.bricks.grid.flat()) {
+    if (brick) brick.alive = false;
+  }
+}
+
+test('every level map is a rectangle with at least one brick', () => {
+  const { CONFIG } = load();
+  assert.equal(CONFIG.levels.maps.length, 5);
+  for (const { name, rows } of CONFIG.levels.maps) {
+    assert.ok(rows.length > 0, name);
+    assert.ok(rows.every(row => row.length === rows[0].length && /^[#.]+$/.test(row)), `${name} rows must be equal length and only # or .`);
+    assert.ok(countBricks(rows) > 0, name);
+  }
+});
+
+test('clearing a level moves to the next one, keeping score and lives, with a faster ball', () => {
+  const exports = load();
+  const { CONFIG } = exports;
+  const game = createGame(exports);
+  clickAndStep(game);
+  game.score = 120;
+  game.lives = 2;
+
+  clearBoard(game);
+  game.update(0);
+  assert.equal(game.state, 'levelComplete');
+
+  clickAndStep(game);
+  assert.equal(game.level, 1);
+  assert.equal(game.state, 'ready');
+  assert.equal(game.score, 120);
+  assert.equal(game.lives, 2, 'lives carry over');
+  assert.equal(game.bricks.remaining(), countBricks(CONFIG.levels.maps[1].rows));
+  assert.equal(game.ball.speed, CONFIG.ball.speed * (1 + CONFIG.levels.speedIncrease));
+  assert.equal(game.hud.level.textContent, `Level 2/${CONFIG.levels.maps.length}`);
+
+  game.update(0);
+  assert.equal(game.ball.dx, game.ball.speed, 'the ball launches at the level speed');
+});
+
+test('clearing the last level wins, and a new game starts back at level 1', () => {
+  const exports = load();
+  const { CONFIG } = exports;
+  const game = createGame(exports);
+  game.startLevel(CONFIG.levels.maps.length - 1);
+  clickAndStep(game);
+
+  clearBoard(game);
+  game.update(0);
+  assert.equal(game.state, 'won');
+
+  clickAndStep(game);
+  assert.equal(game.level, 0);
+  assert.equal(game.lives, CONFIG.lives);
+  assert.equal(game.ball.speed, CONFIG.ball.speed);
 });
