@@ -26,7 +26,7 @@ const CONFIG = {
 
   ball: {
     radius: 8,
-    speed: 10,
+    speed: 7.5,
     maxBounceAngle: Math.PI / 3,
     color: '#a5f3fc',
     fireballColor: '#fb923c',

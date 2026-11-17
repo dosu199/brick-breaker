@@ -389,14 +389,14 @@ test('breaking a brick bursts particles in its color, and a new level clears the
   assert.equal(game.particles.sparks.length, 0);
 });
 
-test('power-ups multiply the doubled base ball speed', () => {
+test('power-ups multiply the base ball speed', () => {
   const exports = load();
   const { CONFIG } = exports;
   const game = createGame(exports);
   clickAndStep(game);
   const base = Math.hypot(CONFIG.ball.speed, CONFIG.ball.speed);
 
-  assert.equal(CONFIG.ball.speed, 10);
+  assert.equal(CONFIG.ball.speed, 7.5);
   assert.equal(game.ball.distancePerTick(), base);
 
   game.collectPowerUp('fast', 0);
