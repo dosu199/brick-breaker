@@ -24,7 +24,8 @@ test('construction builds bricks from the level map and leaves gaps empty', () =
   const { CONFIG, Brick, Bricks } = loadClasses();
   const settings = CONFIG.bricks;
   const bricks = new Bricks({ ...WORLD }, ['#.#', '.##']);
-  const brickWidth = (WORLD.width - 2 * settings.sideMargin - 2 * settings.padding) / 3;
+  const brickWidth = settings.maxWidth;
+  const left = (WORLD.width - (3 * brickWidth + 2 * settings.padding)) / 2;
 
   assert.equal(bricks.rows, 2);
   assert.equal(bricks.cols, 3);
@@ -35,7 +36,7 @@ test('construction builds bricks from the level map and leaves gaps empty', () =
   for (const [row, col] of [[0, 0], [0, 2], [1, 1], [1, 2]]) {
     const brick = bricks.grid[row][col];
     assert.ok(brick instanceof Brick);
-    assert.equal(brick.x, settings.sideMargin + col * (brickWidth + settings.padding));
+    assert.equal(brick.x, left + col * (brickWidth + settings.padding));
     assert.equal(brick.y, settings.offsetTop + row * (settings.height + settings.padding));
     assert.equal(brick.width, brickWidth);
     assert.equal(brick.height, settings.height);
@@ -44,7 +45,7 @@ test('construction builds bricks from the level map and leaves gaps empty', () =
   }
 
   const lastBrick = bricks.grid[0][2];
-  assert.ok(Math.abs(lastBrick.x + lastBrick.width - (WORLD.width - settings.sideMargin)) < 1e-9);
+  assert.ok(Math.abs(lastBrick.x + lastBrick.width - (WORLD.width - left)) < 1e-9, 'the grid is centered');
 });
 
 test('build uses instance settings, cycles colors, and resets the board', () => {
@@ -73,8 +74,8 @@ test('build uses instance settings, cycles colors, and resets the board', () => 
   ]);
 });
 
-test('layout after a resize stretches bricks and keeps destroyed ones destroyed', () => {
-  const { Bricks } = loadClasses();
+test('layout after a resize grows bricks up to their max width, centered, keeping destroyed ones destroyed', () => {
+  const { CONFIG, Bricks } = loadClasses();
   const world = { ...WORLD };
   const bricks = new Bricks(world, WALL);
   const brick = bricks.grid[1][2];
@@ -87,8 +88,22 @@ test('layout after a resize stretches bricks and keeps destroyed ones destroyed'
   assert.equal(bricks.grid[1][2], brick);
   assert.equal(brick.alive, false);
   assert.ok(brick.width > oldWidth);
+  assert.equal(brick.width, CONFIG.bricks.maxWidth, 'bricks stop growing on big screens');
+  const first = bricks.grid[0][0];
   const last = bricks.grid[0][bricks.cols - 1];
-  assert.ok(Math.abs(last.x + last.width - (world.width - bricks.sideMargin)) < 1e-9);
+  assert.ok(Math.abs(first.x - (world.width - (last.x + last.width))) < 1e-9, 'the grid is centered');
+});
+
+test('on a short screen bricks get shorter so the grid uses at most half the height', () => {
+  const { CONFIG, Bricks } = loadClasses();
+  const rows = Array(10).fill('####');
+  const tall = new Bricks({ width: 700, height: 2000 }, rows);
+  const short = new Bricks({ width: 700, height: 400 }, rows);
+
+  assert.equal(tall.grid[0][0].height, CONFIG.bricks.height, 'full height when there is room');
+  const bottom = short.grid.at(-1)[0];
+  assert.ok(bottom.height < CONFIG.bricks.height);
+  assert.ok(bottom.y + bottom.height <= 400 * CONFIG.bricks.maxGridHeightRatio);
 });
 
 test('a brick draws itself only while alive', () => {

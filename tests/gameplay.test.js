@@ -157,10 +157,11 @@ test('the world matches the canvas size 1:1 and is backed by device pixels', () 
   assert.equal(game.scale, 2);
   assert.equal(game.paddle.y, 900 - CONFIG.paddle.height - CONFIG.paddle.bottomMargin, 'paddle stays at the bottom');
 
+  const firstBrick = game.bricks.grid[0][0];
   const lastBrick = game.bricks.grid[0][cols - 1];
   assert.equal(game.bricks.cols, cols, 'resizing mid-game keeps the same bricks');
-  assert.ok(Math.abs(lastBrick.x + lastBrick.width - (1800 - CONFIG.bricks.sideMargin)) < 1e-9,
-    'bricks stretch to the new width');
+  assert.equal(lastBrick.width, CONFIG.bricks.maxWidth, 'bricks are capped on a big screen');
+  assert.ok(Math.abs(firstBrick.x - (1800 - (lastBrick.x + lastBrick.width))) < 1e-9, 'and centered');
 });
 
 function fakeLoadedImage(Assets, path, naturalWidth, naturalHeight) {

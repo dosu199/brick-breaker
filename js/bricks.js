@@ -1,3 +1,5 @@
+const MIN_BRICK_HEIGHT = 8;
+
 class Brick {
   constructor(x, y, width, height, color) {
     this.x = x;
@@ -57,15 +59,20 @@ class Bricks {
 
   layout() {
     const usableWidth = this.world.width - 2 * this.sideMargin - (this.cols - 1) * this.padding;
-    this.brickWidth = usableWidth / this.cols;
+    this.brickWidth = Math.min(CONFIG.bricks.maxWidth, usableWidth / this.cols);
+    const gridWidth = this.cols * this.brickWidth + (this.cols - 1) * this.padding;
+    const left = (this.world.width - gridWidth) / 2;
+
+    const maxGridHeight = this.world.height * CONFIG.bricks.maxGridHeightRatio - this.y;
+    this.rowHeight = Math.max(MIN_BRICK_HEIGHT, Math.min(this.brickHeight, maxGridHeight / this.rows - this.padding));
 
     this.grid.forEach((row, rowIndex) => {
       row.forEach((brick, colIndex) => {
         if (!brick) return;
-        brick.x = this.sideMargin + colIndex * (this.brickWidth + this.padding);
-        brick.y = this.y + rowIndex * (this.brickHeight + this.padding);
+        brick.x = left + colIndex * (this.brickWidth + this.padding);
+        brick.y = this.y + rowIndex * (this.rowHeight + this.padding);
         brick.width = this.brickWidth;
-        brick.height = this.brickHeight;
+        brick.height = this.rowHeight;
       });
     });
   }

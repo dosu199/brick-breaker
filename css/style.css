@@ -114,12 +114,13 @@ body {
 }
 
 #level-track .current {
-  background: linear-gradient(90deg, #ff2e88, #b14bff, #22d3ee);
+  background: #ff2e88;
+  box-shadow: 0 0 8px rgba(255, 46, 136, 0.6);
   animation: pulse 1.6s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  50% { box-shadow: 0 0 12px rgba(177, 75, 255, 0.8); filter: brightness(1.35); }
+  50% { box-shadow: 0 0 14px rgba(255, 46, 136, 0.9); }
 }
 
 .lives-stat {

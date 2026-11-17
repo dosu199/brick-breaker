@@ -11,11 +11,15 @@ fullscreen.
 
 The game fills the browser window, leaving a gutter around the play area
 (`--gutter` in `css/style.css`). Objects are drawn at their normal size: a bigger
-window gives a bigger field, and the bricks stretch to span its width.
+window gives a bigger field. Bricks grow with the window up to
+`CONFIG.bricks.maxWidth` and the grid is centered; on short windows they get
+thinner so the grid never takes more than half the play area
+(`maxGridHeightRatio`).
 
 ## Levels
 There are five levels: Wall, Pyramid, Diamond, Checker and Invader. Each uses the
-same bricks in a different shape. Clearing a level shows a banner; click to start
+same bricks in a different shape, and levels 2 to 5 are larger (16 to 18
+columns, 8 to 10 rows) than the 12x5 opening wall. Clearing a level shows a banner; click to start
 the next one. Score and lives carry over, and the ball gets
 `CONFIG.levels.speedIncrease` (8%) faster each level. Losing all lives sends you
 back to level 1.
@@ -24,13 +28,17 @@ Levels are text maps in `CONFIG.levels.maps`: `#` is a brick, `.` is a gap, and
 each row gets the next brick color. All rows of a map must be the same length.
 
 ```
-name: 'Pyramid',
+name: 'Diamond',
 rows: [
-  '.....##.....',
-  '....####....',
-  '...######...',
-  '..########..',
-  '.##########.',
+  '.......####.......',
+  '......######......',
+  '.....########.....',
+  '....##########....',
+  '..######..######..',
+  '....##########....',
+  '.....########.....',
+  '......######......',
+  '.......####.......',
 ],
 ```
 
