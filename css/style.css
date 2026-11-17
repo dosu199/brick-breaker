@@ -30,12 +30,13 @@ body {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 24px;
-  margin: 14px 0;
-  padding: 10px 20px;
+  gap: 1.7em;
+  margin: 1em 0;
+  padding: 0.7em 1.4em;
+  font-size: clamp(13px, min(1.05vw, 2.1vh), 21px);
   background: linear-gradient(180deg, rgba(30, 41, 59, 0.55), rgba(15, 23, 42, 0.45));
   border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 16px;
+  border-radius: 1.15em;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     0 10px 30px rgba(0, 0, 0, 0.35);
@@ -46,7 +47,7 @@ body {
 .stat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.3em;
 }
 
 .stat-center {
@@ -57,11 +58,11 @@ body {
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
-  gap: 20px;
+  gap: 1.4em;
 }
 
 .label {
-  font-size: 11px;
+  font-size: 0.79em;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -69,7 +70,7 @@ body {
 }
 
 #score {
-  font-size: 24px;
+  font-size: 1.7em;
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -98,13 +99,13 @@ body {
 
 #level-track {
   display: flex;
-  gap: 6px;
+  gap: 0.43em;
 }
 
 #level-track span {
-  width: 30px;
-  height: 6px;
-  border-radius: 3px;
+  width: 2.15em;
+  height: 0.43em;
+  border-radius: 0.22em;
   background: rgba(148, 163, 184, 0.18);
 }
 
@@ -130,13 +131,13 @@ body {
 #lives {
   display: flex;
   align-items: center;
-  gap: 6px;
-  height: 24px;
+  gap: 0.43em;
+  height: 1.7em;
 }
 
 #lives .life {
-  width: 18px;
-  height: 16px;
+  width: 1.3em;
+  height: 1.15em;
   background: #f472b6;
   filter: drop-shadow(0 0 6px rgba(244, 114, 182, 0.7));
   -webkit-mask: var(--heart) center / contain no-repeat;
@@ -145,7 +146,7 @@ body {
 }
 
 #lives .extra {
-  font-size: 13px;
+  font-size: 0.93em;
   font-weight: 700;
   color: #f472b6;
 }
@@ -162,23 +163,23 @@ body {
 #hint {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 0.6em;
+  font-size: 0.86em;
   color: var(--muted);
 }
 
 kbd {
   display: inline-grid;
   place-items: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 6px;
-  font: 600 12px system-ui, sans-serif;
+  min-width: 2em;
+  height: 2em;
+  padding: 0 0.5em;
+  font: 600 1em system-ui, sans-serif;
   color: var(--text);
   background: rgba(148, 163, 184, 0.12);
   border: 1px solid rgba(148, 163, 184, 0.25);
   border-bottom-width: 2px;
-  border-radius: 6px;
+  border-radius: 0.5em;
 }
 
 @media (max-width: 720px) {

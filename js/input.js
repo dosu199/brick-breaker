@@ -5,7 +5,7 @@ class Input {
 
     window.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
-      this.mouseX = e.clientX - rect.left - canvas.clientLeft;
+      this.mouseX = (e.clientX - rect.left - canvas.clientLeft) * (world.width / canvas.clientWidth);
     });
 
     canvas.addEventListener('mousedown', () => {

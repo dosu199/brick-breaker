@@ -17,12 +17,16 @@ class Game {
 
   resize() {
     const pixelRatio = globalThis.devicePixelRatio ?? 1;
+    const cssWidth = this.canvas.clientWidth;
+    const cssHeight = this.canvas.clientHeight;
+    const { width, height, minScale, maxScale } = CONFIG.view;
 
-    this.world.width = this.canvas.clientWidth;
-    this.world.height = this.canvas.clientHeight;
-    this.canvas.width = Math.round(this.world.width * pixelRatio);
-    this.canvas.height = Math.round(this.world.height * pixelRatio);
-    this.scale = pixelRatio;
+    this.viewScale = Math.max(minScale, Math.min(maxScale, cssWidth / width, cssHeight / height));
+    this.world.width = cssWidth / this.viewScale;
+    this.world.height = cssHeight / this.viewScale;
+    this.canvas.width = Math.round(cssWidth * pixelRatio);
+    this.canvas.height = Math.round(cssHeight * pixelRatio);
+    this.scale = this.viewScale * pixelRatio;
 
     this.bricks?.layout();
     this.starfield?.resize();

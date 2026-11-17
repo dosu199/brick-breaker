@@ -113,7 +113,7 @@ test('losing a life clears active effects and falling power-ups', () => {
   game.collectPowerUp('fast', 0);
   game.powerUps.push(new exports.PowerUp(0, 0, game.world));
 
-  game.ball.y = WORLD.height + 100;
+  game.ball.y = game.world.height + 100;
   game.update(10);
 
   assert.equal(game.lives, exports.CONFIG.lives - 1);
@@ -139,29 +139,39 @@ test('clicking after game over starts a fresh game', () => {
   assert.equal(game.bricks.remaining(), countBricks(exports.CONFIG.levels.maps[0].rows));
 });
 
-test('the world matches the canvas size 1:1 and is backed by device pixels', () => {
+test('the game scales with the window around the reference view size', () => {
   const exports = load({ devicePixelRatio: 2 });
   const game = createGame(exports);
   const { CONFIG } = exports;
-  const cols = game.bricks.cols;
+  const { view } = CONFIG;
+  const resizeTo = (clientWidth, clientHeight) => {
+    Object.assign(game.canvas, { clientWidth, clientHeight });
+    game.resize();
+  };
 
-  assert.deepEqual({ ...game.world }, WORLD);
-  assert.equal(game.paddle.width, CONFIG.paddle.width, 'objects are not zoomed');
+  resizeTo(view.width, view.height);
+  assert.equal(game.viewScale, 1, 'the reference size is drawn 1:1');
+  assert.deepEqual({ ...game.world }, { width: view.width, height: view.height });
 
-  Object.assign(game.canvas, { clientWidth: 1800, clientHeight: 900 });
-  game.resize();
+  resizeTo(view.width * 1.5, view.height * 1.5);
+  assert.equal(game.viewScale, 1.5, 'a bigger window scales everything up');
+  assert.deepEqual({ ...game.world }, { width: view.width, height: view.height }, 'the game sees the same world');
+  assert.equal(game.canvas.width, view.width * 1.5 * 2, 'backed by device pixels');
+  assert.equal(game.scale, 1.5 * 2);
 
-  assert.deepEqual({ ...game.world }, { width: 1800, height: 900 });
-  assert.equal(game.canvas.width, 3600);
-  assert.equal(game.canvas.height, 1800);
-  assert.equal(game.scale, 2);
-  assert.equal(game.paddle.y, 900 - CONFIG.paddle.height - CONFIG.paddle.bottomMargin, 'paddle stays at the bottom');
+  resizeTo(view.width * 2, view.height * 1.2);
+  assert.equal(game.viewScale, 1.2, 'the tighter dimension decides, so nothing is cut off');
+  assert.equal(game.world.height, view.height);
+  assert.ok(game.world.width > view.width, 'a wider window shows a wider field');
 
-  const firstBrick = game.bricks.grid[0][0];
-  const lastBrick = game.bricks.grid[0][cols - 1];
-  assert.equal(game.bricks.cols, cols, 'resizing mid-game keeps the same bricks');
-  assert.equal(lastBrick.width, CONFIG.bricks.maxWidth, 'bricks are capped on a big screen');
-  assert.ok(Math.abs(firstBrick.x - (1800 - (lastBrick.x + lastBrick.width))) < 1e-9, 'and centered');
+  resizeTo(view.width * 5, view.height * 5);
+  assert.equal(game.viewScale, view.maxScale, 'never zooms past the maximum');
+  resizeTo(view.width * 0.3, view.height * 0.3);
+  assert.equal(game.viewScale, view.minScale, 'never shrinks past the minimum');
+
+  assert.equal(game.paddle.y, game.world.height - CONFIG.paddle.height - CONFIG.paddle.bottomMargin, 'paddle stays at the bottom');
+  const first = game.bricks.grid.flat().find(Boolean);
+  assert.ok(first.x >= 0, 'bricks stay inside the world after resizing');
 });
 
 function fakeLoadedImage(Assets, path, naturalWidth, naturalHeight) {
@@ -341,4 +351,23 @@ test('clearing the last level wins, and a new game starts back at level 1', () =
   assert.equal(game.level, 0);
   assert.equal(game.lives, CONFIG.lives);
   assert.equal(game.ball.speed, CONFIG.ball.speed);
+});
+
+test('the mouse position is converted from screen pixels to game units', () => {
+  const listeners = {};
+  const { Input } = loadScripts(['input.js'], ['Input'], {
+    window: { addEventListener: (type, handler) => { listeners[type] = handler; } },
+  });
+  const world = { width: 1200, height: 600 };
+  const canvas = {
+    clientWidth: 600,
+    clientLeft: 1,
+    getBoundingClientRect: () => ({ left: 100 }),
+    addEventListener() {},
+  };
+  const input = new Input(canvas, world);
+
+  listeners.mousemove({ clientX: 401 });
+
+  assert.equal(input.mouseX, 600, 'the middle of a half-size canvas is the middle of the world');
 });

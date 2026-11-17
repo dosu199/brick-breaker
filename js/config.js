@@ -1,4 +1,11 @@
 const CONFIG = {
+  view: {
+    width: 1200,
+    height: 600,
+    minScale: 0.75,
+    maxScale: 1.6,
+  },
+
   stars: {
     density: 0.0004,
     minSpeed: 0.04,
