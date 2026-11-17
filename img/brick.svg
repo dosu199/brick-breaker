@@ -1,0 +1,18 @@
+<!-- Dark glass panel drawn over each brick's row color. A thin rim of the row
+     color shows around the edge, and through the "indicator" slits. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="210" height="60" viewBox="0 0 210 60">
+  <defs>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <path fill="#060a1a" fill-opacity="0.7" fill-rule="evenodd" d="
+    M14 5H196A9 9 0 0 1 205 14V46A9 9 0 0 1 196 55H14A9 9 0 0 1 5 46V14A9 9 0 0 1 14 5Z
+    M18 42h18v5h-18z M41 42h9v5h-9z M55 42h5v5h-5z"/>
+  <path d="M14 5H196A9 9 0 0 1 205 14V30H5V14A9 9 0 0 1 14 5Z" fill="url(#sheen)"/>
+  <!-- holographic diagonal glint -->
+  <path d="M138 5h22l-30 50h-22z" fill="#ffffff" opacity="0.05"/>
+  <!-- corner brackets -->
+  <path d="M190 12h6v6M20 48h-6v-6" fill="none" stroke="#ffffff" stroke-opacity="0.45" stroke-width="2" stroke-linecap="round"/>
+</svg>

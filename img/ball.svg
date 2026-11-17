@@ -1,0 +1,13 @@
+<!-- Plasma orb, drawn exactly at the ball's size (the glow is added by the game). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <defs>
+    <radialGradient id="plasma" cx="0.45" cy="0.42" r="0.6">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.4" stop-color="#cffafe"/>
+      <stop offset="0.78" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#0e7490"/>
+    </radialGradient>
+  </defs>
+  <circle cx="24" cy="24" r="23.5" fill="url(#plasma)"/>
+  <circle cx="24" cy="24" r="21" fill="none" stroke="#ecfeff" stroke-opacity="0.6" stroke-width="1.5"/>
+</svg>

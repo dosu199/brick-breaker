@@ -1,0 +1,30 @@
+<!-- Plasma comet, drawn at CONFIG.ball.fireballSpriteScale (3x) the ball's size
+     and rotated to its direction of travel (+x). The core (r=16 of 96) matches
+     the ball; the tail trails behind it. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <defs>
+    <linearGradient id="tail" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0.5" stop-color="#fb923c" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#e11d48" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="streak" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0.55" stop-color="#fef3c7"/>
+      <stop offset="1" stop-color="#fde68a" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="core" cx="0.55" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.35" stop-color="#fef3c7"/>
+      <stop offset="0.7" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#e11d48"/>
+    </radialGradient>
+    <!-- Tail only behind the core, so it doesn't ring its leading edge. -->
+    <clipPath id="behind">
+      <rect x="0" y="0" width="50" height="96"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#behind)">
+    <path d="M48 31L4 45a3.2 3.2 0 0 0 0 6L48 65z" fill="url(#tail)"/>
+    <path d="M48 39L10 47a1 1 0 0 0 0 2L48 57z" fill="url(#streak)"/>
+  </g>
+  <circle cx="48" cy="48" r="16" fill="url(#core)"/>
+</svg>

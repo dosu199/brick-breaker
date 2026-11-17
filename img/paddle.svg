@@ -1,0 +1,33 @@
+<!-- Starship paddle, 3-slice: the left and right 36px are engine pods, the
+     middle hull stretches, so its details only vary vertically (or are smooth
+     horizontal gradients, which stretch cleanly). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="36" viewBox="0 0 360 36">
+  <defs>
+    <linearGradient id="energy" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0.1" stop-color="#a5f3fc" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#ecfeff"/>
+      <stop offset="0.9" stop-color="#a5f3fc" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="pod" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#334155"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Hull (stretched) -->
+  <rect x="0" y="5" width="360" height="26" fill="#0b1224"/>
+  <rect x="0" y="5" width="360" height="3" fill="#22d3ee"/>
+  <rect x="0" y="8" width="360" height="6" fill="#22d3ee" opacity="0.15"/>
+  <rect x="0" y="16.5" width="360" height="3" fill="url(#energy)"/>
+  <rect x="0" y="28" width="360" height="3" fill="#6366f1"/>
+
+  <!-- Engine pods (not stretched) -->
+  <g id="pod-left">
+    <path d="M36 1H17A16 16 0 0 0 1 17v2a16 16 0 0 0 16 16h19z" fill="url(#pod)"/>
+    <path d="M36 1H17A16 16 0 0 0 2.5 10" fill="none" stroke="#94a3b8" stroke-width="2"/>
+    <circle cx="18" cy="18" r="10" fill="#020617"/>
+    <circle cx="18" cy="18" r="8" fill="none" stroke="#22d3ee" stroke-width="3"/>
+    <circle cx="18" cy="18" r="3.5" fill="#ecfeff"/>
+  </g>
+  <use href="#pod-left" transform="translate(360 0) scale(-1 1)"/>
+</svg>
