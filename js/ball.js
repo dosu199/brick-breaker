@@ -1,14 +1,13 @@
-// The ball: position (x, y) + velocity (dx, dy).
-
 class Ball {
-  constructor() {
+  constructor(world) {
+    this.world = world;
+    this.radius = CONFIG.ball.radius;
     this.x = 0;
     this.y = 0;
-    this.dx = CONFIG.ball.speed;
-    this.dy = -CONFIG.ball.speed;
-    this.radius = CONFIG.ball.radius;
-    this.color = CONFIG.ball.color;
-    this.glow = CONFIG.ball.glow;
+    this.dx = 0;
+    this.dy = 0;
+    this.speedScale = 1;
+    this.fireball = false;
   }
 
   reset(paddle) {
@@ -16,32 +15,55 @@ class Ball {
     this.y = paddle.y - this.radius;
     this.dx = CONFIG.ball.speed;
     this.dy = -CONFIG.ball.speed;
-    // TODO: place ball on top of the paddle, stop it until launch
   }
 
   update() {
-    this.x += this.dx;
-    this.y += this.dy;
-    if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
-      this.dx = -this.dx;
+    this.x += this.dx * this.speedScale;
+    this.y += this.dy * this.speedScale;
+
+    const maxX = this.world.width - this.radius;
+    if (this.x < this.radius) {
+      this.x = this.radius;
+      this.dx = Math.abs(this.dx);
+    } else if (this.x > maxX) {
+      this.x = maxX;
+      this.dx = -Math.abs(this.dx);
     }
-    if (this.y - this.radius < 0) {
-      this.dy = -this.dy;
+    if (this.y < this.radius) {
+      this.y = this.radius;
+      this.dy = Math.abs(this.dy);
     }
-    if (this.y + this.radius > canvas.height) {
-      // Ball fell below the bottom of the canvas
-      // TODO: handle losing a life
-    }
-    // TODO: x += dx; y += dy;
-    // TODO: bounce off left, right and top walls
   }
 
-    draw(ctx) {
-    ctx.fillStyle = this.color;
+  isBelowScreen() {
+    return this.y - this.radius > this.world.height;
+  }
 
+  draw(ctx) {
+    const { glowBlur } = CONFIG.ball;
+    const glowColor = this.fireball ? CONFIG.ball.fireballGlowColor : CONFIG.ball.glowColor;
+    const image = Assets.get(this.fireball ? CONFIG.ball.fireballImage : CONFIG.ball.image);
+    const scale = this.fireball && image ? CONFIG.ball.fireballSpriteScale : 1;
+    const size = this.radius * 2 * scale;
+    const key = `ball|${this.fireball ? 'fire' : 'normal'}|${image ? 'sprite' : 'shape'}`;
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    if (this.fireball) ctx.rotate(Math.atan2(this.dy, this.dx));
+    drawCached(ctx, key, -size / 2, -size / 2, size, size, glowBlur,
+      (target, x, y) => withGlow(target, glowColor, glowBlur, () => this.paint(target, x, y, size, image)));
+    ctx.restore();
+  }
+
+  paint(ctx, x, y, size, image) {
+    if (image) {
+      ctx.drawImage(image, x, y, size, size);
+      return;
+    }
+
+    ctx.fillStyle = this.fireball ? CONFIG.ball.fireballColor : CONFIG.ball.color;
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
     ctx.fill();
-
   }
 }

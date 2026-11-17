@@ -9,13 +9,16 @@
 <body>
   <div id="hud">
     <span id="score">Score: 0</span>
+    <span id="hint">F: fullscreen</span>
     <span id="lives">Lives: 3</span>
   </div>
 
-  <canvas id="game" width="800" height="600"></canvas>
+  <canvas id="game"></canvas>
 
-  <!-- Load order matters: config and entities first, game and main last -->
   <script src="js/config.js"></script>
+  <script src="js/assets.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/starfield.js"></script>
   <script src="js/input.js"></script>
   <script src="js/paddle.js"></script>
   <script src="js/ball.js"></script>

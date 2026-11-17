@@ -1,12 +1,15 @@
-// Collision helpers.
-
 const Collision = {
-  // Does a circle (ball) overlap a rectangle (brick/paddle)?
-  circleRect(ball, rect) {
-    // TODO: return true/false
+  circleRect(circle, rect) {
+    const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+    const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
+    const distX = circle.x - closestX;
+    const distY = circle.y - closestY;
+
+    const overlaps = distX * distX + distY * distY < circle.radius * circle.radius;
+    return overlaps ? { distX, distY } : null;
   },
 
-    ballPaddle(ball, paddle) {
+  ballPaddle(ball, paddle) {
     const hit =
       ball.dy > 0 &&
       ball.y + ball.radius >= paddle.y &&
@@ -16,51 +19,46 @@ const Collision = {
 
     if (!hit) return false;
 
-    // Where on the paddle did it hit? -1 = left edge, 0 = center, 1 = right edge
     const paddleCenter = paddle.x + paddle.width / 2;
-    let offset = (ball.x - paddleCenter) / (paddle.width / 2);
-    offset = Math.max(-1, Math.min(1, offset));
+    const offset = Math.max(-1, Math.min(1, (ball.x - paddleCenter) / (paddle.width / 2)));
 
-    const maxAngle = Math.PI / 3;  // 60°
-    const angle = offset * maxAngle;
+    const angle = offset * CONFIG.ball.maxBounceAngle;
     const speed = Math.hypot(ball.dx, ball.dy);
-
     ball.dx = speed * Math.sin(angle);
     ball.dy = -speed * Math.cos(angle);
 
-    // Push the ball above the paddle so it can't stay inside it
     ball.y = paddle.y - ball.radius;
 
     return true;
   },
 
-   ballBricks(ball, grid) {
-    for (let i = 0; i < grid.length; i++) {
-      for (let j = 0; j < grid[i].length; j++) {
-        const brick = grid[i][j];
-        if (!brick.alive) continue;
+  ballBricks(ball, grid) {
+    const hits = [];
 
-        // closest point on the brick to the ball's center
-        const closestX = Math.max(brick.x, Math.min(ball.x, brick.x + brick.width));
-        const closestY = Math.max(brick.y, Math.min(ball.y, brick.y + brick.height));
+    for (const row of grid) {
+      for (const brick of row) {
+        if (!brick?.alive) continue;
 
-        const distX = ball.x - closestX;
-        const distY = ball.y - closestY;
+        const overlap = this.circleRect(ball, brick);
+        if (!overlap) continue;
 
-        if (distX * distX + distY * distY < ball.radius * ball.radius) {
-          brick.alive = false;
+        brick.alive = false;
+        hits.push(brick);
 
-          // Hit the side or the top/bottom?
-          if (Math.abs(distX) > Math.abs(distY)) {
-            ball.dx = -ball.dx;
-          } else {
-            ball.dy = -ball.dy;
-          }
+        if (ball.fireball) continue;
 
-          return brick;   // hand back the brick so the game can score it / drop a power-up
+        if (Math.abs(overlap.distX) > Math.abs(overlap.distY)) {
+          ball.dx = -ball.dx;
+        } else {
+          ball.dy = -ball.dy;
         }
+        return hits;
       }
     }
-    return null;   // no hit this frame
+    return hits;
+  },
+
+  paddlePowerUp(powerUp, paddle) {
+    return this.circleRect(powerUp, paddle) !== null;
   },
 };

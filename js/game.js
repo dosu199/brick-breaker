@@ -1,71 +1,186 @@
-// Game state and the main loop logic.
+const STEP_MS = 1000 / 60;
+const MAX_FRAME_MS = 250;
 
 class Game {
-  constructor(canvas) {
+  constructor(canvas, hud) {
     this.canvas = canvas;
-    this.canvas.width = CONFIG.canvas.width;
-    this.canvas.height = CONFIG.canvas.height;
     this.ctx = canvas.getContext('2d');
+    this.hud = hud;
 
-    this.input = new Input(this.canvas);
-    this.paddle = new Paddle();
-    this.ball = new Ball();
-    this.bricks = new Bricks();
-    this.powerUps = [];
+    this.world = { width: 0, height: 0 };
+    this.resize();
+    this.starfield = new Starfield(this.world);
 
-    this.score = 0;
-      this.lives = CONFIG.lives;
-      this.state = 'ready'; // 'ready' | 'playing' | 'won' | 'lost'
+    this.input = new Input(this.canvas, this.world);
+    this.reset();
   }
 
-  update() {
-    this.paddle.update(this.input);
-    this.ball.update();
-    let brick = Collision.ballBricks(this.ball, this.bricks.grid);
-    if (brick) {
-      console.log('Brick hit:', brick);
-      this.powerUps.push(new PowerUp(brick.x, brick.y));
-      console.log('powerUps:', this.powerUps);
+  resize() {
+    const pixelRatio = globalThis.devicePixelRatio ?? 1;
+
+    this.world.width = this.canvas.clientWidth;
+    this.world.height = this.canvas.clientHeight;
+    this.canvas.width = Math.round(this.world.width * pixelRatio);
+    this.canvas.height = Math.round(this.world.height * pixelRatio);
+    this.scale = pixelRatio;
+
+    this.bricks?.layout();
+    this.starfield?.resize();
+  }
+
+  reset() {
+    this.paddle = new Paddle(this.world);
+    this.ball = new Ball(this.world);
+    this.bricks = new Bricks(this.world);
+    this.powerUps = [];
+    this.effectsUntil = {};
+
+    this.score = 0;
+    this.lives = CONFIG.lives;
+    this.state = 'ready';
+
+    this.updateHud();
+  }
+
+  isOver() {
+    return this.state === 'won' || this.state === 'lost';
+  }
+
+  update(now) {
+    const launch = this.input.consumeLaunch();
+    this.starfield.update();
+
+    if (this.isOver()) {
+      if (launch) this.reset();
+      return;
     }
-    Collision.ballPaddle(this.ball, this.paddle);
+
+    this.applyEffects(now);
+    this.paddle.update(this.input);
+
     if (this.state === 'ready') {
       this.ball.reset(this.paddle);
+      if (launch) this.state = 'playing';
+      return;
     }
-    if (this.state === 'ready' && this.input.launch) {
-      this.state = 'playing';
-    } 
-    if (this.bricks.remaining() === 0) {
+
+    this.ball.update();
+    Collision.ballPaddle(this.ball, this.paddle);
+    this.handleBrickHits(Collision.ballBricks(this.ball, this.bricks.grid));
+    this.updatePowerUps(now);
+
+    if (this.ball.isBelowScreen()) {
+      this.loseLife();
+    } else if (this.bricks.remaining() === 0) {
       this.state = 'won';
     }
-     
-    // TODO: check collisions
-    // TODO: ball fell below paddle -> lose a life
-    // TODO: no bricks left -> win
+  }
+
+  handleBrickHits(bricks) {
+    if (bricks.length === 0) return;
+
+    for (const brick of bricks) {
+      this.score += CONFIG.bricks.points;
+      if (Math.random() < CONFIG.powerUps.dropChance) {
+        this.powerUps.push(new PowerUp(brick.x + brick.width / 2, brick.y + brick.height / 2, this.world));
+      }
+    }
+    this.updateHud();
+  }
+
+  updatePowerUps(now) {
+    for (const powerUp of this.powerUps) {
+      powerUp.update();
+      if (Collision.paddlePowerUp(powerUp, this.paddle)) {
+        powerUp.alive = false;
+        this.collectPowerUp(powerUp.type, now);
+      }
+    }
+    this.powerUps = this.powerUps.filter(p => p.alive && !p.isBelowScreen());
+  }
+
+  collectPowerUp(type, now) {
+    if (type === 'extraLife') {
+      this.lives++;
+      this.updateHud();
+    } else {
+      this.effectsUntil[type] = now + CONFIG.effects.durationMs;
+    }
+  }
+
+  applyEffects(now) {
+    const active = type => now < (this.effectsUntil[type] ?? 0);
+    const { expandScale, shrinkScale, fastScale, slowScale } = CONFIG.effects;
+
+    this.paddle.setScale((active('expand') ? expandScale : 1) * (active('shrink') ? shrinkScale : 1));
+    this.ball.speedScale = (active('fast') ? fastScale : 1) * (active('slow') ? slowScale : 1);
+    this.ball.fireball = active('fireball');
+  }
+
+  loseLife() {
+    this.lives--;
+    this.powerUps = [];
+    this.effectsUntil = {};
+    this.state = this.lives > 0 ? 'ready' : 'lost';
+    this.updateHud();
   }
 
   draw() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    // this.paddle.draw(this.ctx);
+    this.ctx.setTransform(this.scale, 0, 0, this.scale, 0, 0);
+    this.ctx.clearRect(0, 0, this.world.width, this.world.height);
+    this.starfield.draw(this.ctx);
     this.bricks.draw(this.ctx);
+    this.powerUps.forEach(p => p.draw(this.ctx));
     this.paddle.draw(this.ctx);
     this.ball.draw(this.ctx);
-    this.powerUps.forEach(p => p.move());
-    this.powerUps.forEach(p => p.draw(this.ctx));
-    // TODO: draw bricks, paddle, ball
-    // TODO: draw win/lose message
+
+    if (this.isOver()) this.drawEndMessage();
+  }
+
+  drawEndMessage() {
+    const centerX = this.world.width / 2;
+    const centerY = this.world.height / 2;
+
+    const won = this.state === 'won';
+    const font = 'system-ui, "Segoe UI", sans-serif';
+
+    this.ctx.fillStyle = 'rgba(2, 3, 10, 0.55)';
+    this.ctx.fillRect(0, 0, this.world.width, this.world.height);
+
+    this.ctx.textAlign = 'center';
+    withGlow(this.ctx, won ? '#22d3ee' : '#ff2e88', 20, () => {
+      this.ctx.fillStyle = '#f8fafc';
+      this.ctx.font = `700 44px ${font}`;
+      this.ctx.fillText(won ? 'MISSION COMPLETE' : 'GAME OVER', centerX, centerY);
+    });
+    this.ctx.fillStyle = '#94a3b8';
+    this.ctx.font = `500 16px ${font}`;
+    this.ctx.fillText('Click to play again', centerX, centerY + 38);
   }
 
   updateHud() {
-    // TODO: write score and lives into #score and #lives
+    this.hud.score.textContent = `Score: ${this.score}`;
+    this.hud.lives.textContent = `Lives: ${this.lives}`;
   }
 
-  loop() {
-    this.update();
+  loop(now) {
+    this.lag += Math.min(now - this.lastTime, MAX_FRAME_MS);
+    this.lastTime = now;
+
+    while (this.lag >= STEP_MS) {
+      this.update(now);
+      this.lag -= STEP_MS;
+    }
     this.draw();
-    requestAnimationFrame(() => this.loop());
+
+    requestAnimationFrame(t => this.loop(t));
   }
 
   start() {
-    this.loop();
+    requestAnimationFrame(now => {
+      this.lastTime = now;
+      this.lag = 0;
+      this.loop(now);
+    });
   }
 }

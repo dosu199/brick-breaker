@@ -1,21 +1,21 @@
-// Mouse input: paddle follows the cursor, click launches the ball.
-
 class Input {
-  constructor(canvas) {
-    this.mouseX = canvas.width / 2;  // start the paddle in the middle
-    this.launch = false;
+  constructor(canvas, world) {
+    this.mouseX = world.width / 2;
+    this.launchRequested = false;
 
-    canvas.addEventListener('mousemove', (e) => {
+    window.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
-      const scale = canvas.width / rect.width;
-      this.mouseX = (e.clientX - rect.left) * scale;
+      this.mouseX = e.clientX - rect.left - canvas.clientLeft;
     });
 
     canvas.addEventListener('mousedown', () => {
-      this.launch = true;
+      this.launchRequested = true;
     });
-    canvas.addEventListener('mouseup', () => {
-      this.launch = false;
-    });
+  }
+
+  consumeLaunch() {
+    const requested = this.launchRequested;
+    this.launchRequested = false;
+    return requested;
   }
 }

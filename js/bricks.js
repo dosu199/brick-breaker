@@ -1,71 +1,82 @@
 class Brick {
-  constructor(x, y, width, height, color, grid) {
+  constructor(x, y, width, height, color) {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
     this.color = color;
     this.alive = true;
-    this.grid = grid;
   }
 
-    draw(ctx) {
+  draw(ctx) {
     if (!this.alive) return;
 
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.roundRect(this.x, this.y, this.width, this.height, 4);
-    ctx.fill();
+    const panel = Assets.get(CONFIG.bricks.image);
+    const key = `brick|${this.color}|${panel ? 'sprite' : 'shape'}`;
+    drawCached(ctx, key, this.x, this.y, this.width, this.height, CONFIG.bricks.glowBlur,
+      (target, x, y) => this.paint(target, x, y, panel));
+  }
+
+  paint(ctx, x, y, panel) {
+    withGlow(ctx, this.color, CONFIG.bricks.glowBlur, () => {
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.roundRect(x, y, this.width, this.height, 4);
+      ctx.fill();
+    });
+
+    if (panel) ctx.drawImage(panel, x, y, this.width, this.height);
   }
 }
 
 class Bricks {
-  constructor() {
-    this.x = CONFIG.bricks.offsetLeft;
+  constructor(world) {
+    this.world = world;
     this.y = CONFIG.bricks.offsetTop;
-    this.brickWidth = CONFIG.bricks.width;
+    this.sideMargin = CONFIG.bricks.sideMargin;
+    this.targetWidth = CONFIG.bricks.width;
     this.brickHeight = CONFIG.bricks.height;
     this.rows = CONFIG.bricks.rows;
-    this.cols = CONFIG.bricks.cols;
     this.colors = CONFIG.bricks.colors;
     this.padding = CONFIG.bricks.padding;
 
-    this.grid = this.build();
+    this.build();
   }
 
   build() {
+    const usableWidth = this.world.width - 2 * this.sideMargin + this.padding;
+    this.cols = Math.max(1, Math.floor(usableWidth / (this.targetWidth + this.padding)));
+
     this.grid = Array.from({ length: this.rows }, (_, row) =>
-      Array.from({ length: this.cols }, (_, col) => new Brick(
-        this.x + col * (this.brickWidth + this.padding),
-        this.y + row * (this.brickHeight + this.padding),
-        this.brickWidth,
-        this.brickHeight,
-        this.colors[row % this.colors.length]
-      ))
+      Array.from({ length: this.cols }, () => new Brick(0, 0, 0, this.brickHeight, this.colors[row % this.colors.length]))
     );
+    this.layout();
     return this.grid;
   }
 
+  layout() {
+    const usableWidth = this.world.width - 2 * this.sideMargin - (this.cols - 1) * this.padding;
+    this.brickWidth = usableWidth / this.cols;
+
+    this.grid.forEach((row, rowIndex) => {
+      row.forEach((brick, colIndex) => {
+        if (!brick) return;
+        brick.x = this.sideMargin + colIndex * (this.brickWidth + this.padding);
+        brick.y = this.y + rowIndex * (this.brickHeight + this.padding);
+        brick.width = this.brickWidth;
+        brick.height = this.brickHeight;
+      });
+    });
+  }
+
   remaining() {
-    let count = 0;
-
-    for (const row of this.grid) {
-      for (const brick of row) {
-        if (brick && brick.alive) {
-          count++;
-        }
-      }
-    }
-
-    return count;
+    return this.grid.flat().filter(brick => brick?.alive).length;
   }
 
   draw(ctx) {
     for (const row of this.grid) {
       for (const brick of row) {
-        if (brick) {
-          brick.draw(ctx);
-        }
+        brick?.draw(ctx);
       }
     }
   }

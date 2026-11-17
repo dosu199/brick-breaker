@@ -1,42 +1,70 @@
-// All tweakable game settings in one place.
-
 const CONFIG = {
-  canvas: {
-    width: 1400,
-    height: 800,
+  stars: {
+    density: 0.0004,
+    minSpeed: 0.04,
+    maxSpeed: 0.35,
+    twinkleSpeed: 0.03,
   },
 
   paddle: {
     width: 100,
     height: 12,
-    speed: 7,
+    bottomMargin: 10,
     color: '#6366f1',
+    glowColor: '#22d3ee',
+    glowBlur: 12,
+    image: 'img/paddle.svg',
   },
 
   ball: {
     radius: 8,
     speed: 5,
-    color: '#ffffff',
+    maxBounceAngle: Math.PI / 3,
+    color: '#a5f3fc',
+    fireballColor: '#fb923c',
+    glowColor: '#22d3ee',
+    fireballGlowColor: '#f97316',
+    glowBlur: 14,
+    image: 'img/ball.svg',
+    fireballImage: 'img/ball-fire.svg',
+    fireballSpriteScale: 3,
   },
 
   bricks: {
     rows: 5,
-    cols: 18,
     width: 70,
     height: 20,
     padding: 7,
-    offsetTop: 10,
-    offsetLeft: 10,
-    colors: ['#ff4d8d', '#c86bfa', '#7c83ff', '#38bdf8', '#2dd4bf'],
+    offsetTop: 20,
+    sideMargin: 20,
+    points: 10,
+    colors: ['#ff2e88', '#b14bff', '#5b6cff', '#00c2ff', '#00e0b8'],
+    image: 'img/brick.svg',
+    glowBlur: 10,
   },
+
   lives: 3,
+
   powerUps: {
+    dropChance: 0.2,
+    radius: 11,
+    fallSpeed: 2,
+    glowBlur: 12,
     types: [
-      { expand: { color: '#ca7494' } },
-      { shrink: { color: '#b789d1' } },
-      { fast: { color: '#8487ca' } },
-      { slow: { color: '#87b6c9' } },
-      { extraLife: { color: '#7dbeb7' } },
+      { type: 'expand', color: '#4ade80', image: 'img/pu-expand.svg' },
+      { type: 'shrink', color: '#fb7185', image: 'img/pu-shrink.svg' },
+      { type: 'fast', color: '#c084fc', image: 'img/pu-fast.svg' },
+      { type: 'slow', color: '#38bdf8', image: 'img/pu-slow.svg' },
+      { type: 'extraLife', color: '#f472b6', image: 'img/pu-extraLife.svg' },
+      { type: 'fireball', color: '#fb923c', image: 'img/pu-fireball.svg' },
     ],
+  },
+
+  effects: {
+    durationMs: 5000,
+    expandScale: 1.5,
+    shrinkScale: 1 / 1.5,
+    fastScale: 1.5,
+    slowScale: 0.6,
   },
 };
