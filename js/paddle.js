@@ -5,6 +5,7 @@ class Paddle {
     this.height = CONFIG.paddle.height;
     this.x = (world.width - this.width) / 2;
     this.color = CONFIG.paddle.color;
+    this.reversed = false;
   }
 
   get y() {
@@ -16,14 +17,16 @@ class Paddle {
   }
 
   update(input) {
+    const mouseX = this.reversed ? this.world.width - input.mouseX : input.mouseX;
     const maxX = this.world.width - this.width;
-    this.x = Math.max(0, Math.min(maxX, input.mouseX - this.width / 2));
+    this.x = Math.max(0, Math.min(maxX, mouseX - this.width / 2));
   }
 
   draw(ctx) {
-    const { glowColor, glowBlur } = CONFIG.paddle;
+    const { glowBlur } = CONFIG.paddle;
+    const glowColor = this.reversed ? CONFIG.paddle.reversedGlowColor : CONFIG.paddle.glowColor;
     const image = Assets.get(CONFIG.paddle.image);
-    const key = `paddle|${image ? 'sprite' : 'shape'}`;
+    const key = `paddle|${glowColor}|${image ? 'sprite' : 'shape'}`;
     drawCached(ctx, key, this.x, this.y, this.width, this.height, glowBlur,
       (target, x, y) => withGlow(target, glowColor, glowBlur, () => this.paint(target, x, y, image)));
   }

@@ -130,8 +130,15 @@ class Game {
   }
 
   updatePowerUps(now) {
+    const { magnetPull, magnetMaxSpeed } = CONFIG.effects;
+    const paddleCenter = this.paddle.x + this.paddle.width / 2;
+
     for (const powerUp of this.powerUps) {
       powerUp.update();
+      if (this.magnetActive) {
+        const pull = (paddleCenter - powerUp.x) * magnetPull;
+        powerUp.x += Math.max(-magnetMaxSpeed, Math.min(magnetMaxSpeed, pull));
+      }
       if (Collision.paddlePowerUp(powerUp, this.paddle)) {
         powerUp.alive = false;
         this.collectPowerUp(powerUp.type, now);
@@ -157,6 +164,8 @@ class Game {
     this.paddle.setScale((active('expand') ? expandScale : 1) * (active('shrink') ? shrinkScale : 1));
     this.ball.speedScale = (active('fast') ? fastScale : 1) * (active('slow') ? slowScale : 1);
     this.ball.fireball = active('fireball');
+    this.paddle.reversed = active('reverse');
+    this.magnetActive = active('magnet');
     this.barrierRemaining = Math.max(0, (this.effectsUntil.barrier ?? 0) - now);
   }
 

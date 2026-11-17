@@ -1,8 +1,12 @@
 class PowerUp {
+  static weight(type) {
+    return CONFIG.powerUps.rarity[type.rarity];
+  }
+
   static pickType(types = CONFIG.powerUps.types, roll = Math.random()) {
-    const total = types.reduce((sum, type) => sum + type.weight, 0);
+    const total = types.reduce((sum, type) => sum + PowerUp.weight(type), 0);
     let remaining = roll * total;
-    return types.find(type => (remaining -= type.weight) < 0) ?? types.at(-1);
+    return types.find(type => (remaining -= PowerUp.weight(type)) < 0) ?? types.at(-1);
   }
 
   constructor(x, y, world) {

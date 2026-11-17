@@ -81,18 +81,20 @@ brick-breaker/
 ```
 
 ## Power-ups
-Destroyed bricks may drop a power-up (`CONFIG.powerUps.dropChance`). Each type
-has a `weight` that sets how often it drops.
+Destroyed bricks may drop a power-up (`CONFIG.powerUps.dropChance`). How often
+each type drops depends on its `rarity`: the stronger the advantage, the rarer.
 
-| Type        | Effect                                          | Drop odds |
-|-------------|-------------------------------------------------|-----------|
-| `expand`    | wider paddle                                    | 20%       |
-| `slow`      | slower ball                                     | 20%       |
-| `shrink`    | narrower paddle                                 | 13%       |
-| `fast`      | faster ball                                     | 13%       |
-| `fireball`  | ball breaks bricks (and armor) without bouncing | 13%       |
-| `barrier`   | a line below the paddle bounces the ball back up for 10 s; it blinks before it ends | 13% |
-| `extraLife` | +1 life                                         | 7%        |
+| Rarity   | Weight | Type        | Effect                                                   | Drop odds |
+|----------|--------|-------------|----------------------------------------------------------|-----------|
+| common   | 4      | `expand`    | wider paddle                                             | 16% each  |
+|          |        | `slow`      | slower ball                                              |           |
+|          |        | `shrink`    | narrower paddle (bad)                                    |           |
+|          |        | `fast`      | faster ball (bad)                                        |           |
+| uncommon | 2.5    | `magnet`    | falling power-ups drift toward the paddle for 8 s        | 10% each  |
+|          |        | `reverse`   | paddle mirrors the mouse for 5 s, glowing red (bad)      |           |
+| rare     | 1.5    | `fireball`  | ball breaks bricks (and armor) without bouncing          | 6% each   |
+|          |        | `barrier`   | a line below the paddle bounces the ball for 10 s        |           |
+| epic     | 1      | `extraLife` | +1 life                                                  | 4%        |
 
 Timed effects last `CONFIG.effects.durationMs` (5 s) unless the type sets its own
 `durationMs`. Collecting the same one again

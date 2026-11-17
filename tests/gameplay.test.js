@@ -515,17 +515,64 @@ test('the barrier bounces a falling ball for ten seconds, then disappears', () =
   assert.equal(game.lives, exports.CONFIG.lives - 1, 'after it expires the ball can fall again');
 });
 
-test('extra lives are now the rarest power-up', () => {
+test('stronger power-ups are rarer', () => {
   const { CONFIG, PowerUp } = load();
-  const { types } = CONFIG.powerUps;
-  const total = types.reduce((sum, t) => sum + t.weight, 0);
-  const extraLife = types.find(t => t.type === 'extraLife');
+  const { types, rarity } = CONFIG.powerUps;
+  const tierOf = name => types.find(t => t.type === name).rarity;
+  const total = types.reduce((sum, t) => sum + PowerUp.weight(t), 0);
+  const odds = name => PowerUp.weight(types.find(t => t.type === name)) / total;
 
-  assert.ok(extraLife.weight / total < 0.1, 'under 10% of drops');
-  assert.ok(types.every(t => t === extraLife || t.weight > extraLife.weight));
+  assert.ok(rarity.common > rarity.uncommon && rarity.uncommon > rarity.rare && rarity.rare > rarity.epic);
+  assert.equal(tierOf('extraLife'), 'epic');
+  assert.deepEqual([tierOf('fireball'), tierOf('barrier')], ['rare', 'rare']);
+  assert.deepEqual([tierOf('magnet'), tierOf('reverse')], ['uncommon', 'uncommon']);
+  assert.ok(types.every(t => PowerUp.weight(t) > 0), 'every type has a known rarity');
+  assert.ok(odds('extraLife') < 0.05, 'extra life under 5% of drops');
 
   assert.equal(PowerUp.pickType(types, 0).type, types[0].type);
   assert.equal(PowerUp.pickType(types, 0.9999).type, types.at(-1).type);
+});
+
+test('the magnet pulls falling power-ups toward the paddle', () => {
+  const exports = load();
+  const game = createGame(exports);
+  clickAndStep(game);
+  const paddleCenter = () => game.paddle.x + game.paddle.width / 2;
+  const spawn = () => {
+    const p = new exports.PowerUp(paddleCenter() - 300, 50, game.world);
+    game.powerUps = [p];
+    return p;
+  };
+
+  const free = spawn();
+  game.updatePowerUps(0);
+  assert.equal(free.x, paddleCenter() - 300, 'without the magnet it falls straight');
+
+  game.collectPowerUp('magnet', 0);
+  game.applyEffects(1);
+  const pulled = spawn();
+  game.updatePowerUps(1);
+  const step = pulled.x - (paddleCenter() - 300);
+  assert.ok(step > 0 && step <= exports.CONFIG.effects.magnetMaxSpeed, 'it drifts toward the paddle at a capped speed');
+});
+
+test('reverse controls mirror the paddle and turn its glow red', () => {
+  const exports = load();
+  const game = createGame(exports);
+  clickAndStep(game);
+  game.input.mouseX = 100;
+
+  game.update(0);
+  const normalX = game.paddle.x;
+  game.collectPowerUp('reverse', 0);
+  game.update(1);
+
+  assert.equal(game.paddle.reversed, true);
+  assert.ok(Math.abs((game.paddle.x + game.paddle.width / 2) - (game.world.width - 100)) < 1e-9, 'the paddle goes to the mirrored side');
+  assert.notEqual(game.paddle.x, normalX);
+
+  game.update(exports.CONFIG.effects.durationMs + 1);
+  assert.equal(game.paddle.reversed, false, 'it wears off');
 });
 
 test('a partial hit chips a few sparks without the shockwave ring', () => {
