@@ -100,16 +100,27 @@ class Game {
     for (let i = 0; i < steps; i++) {
       this.ball.update(1 / steps);
       Collision.ballPaddle(this.ball, this.paddle);
+      if (this.barrierRemaining > 0 && Collision.ballBarrier(this.ball, this.barrierY())) {
+        this.particles.burst(this.ball.x - 6, this.barrierY() - 2, 12, 2, CONFIG.barrier.color, 0.4);
+      }
       this.handleBrickHits(Collision.ballBricks(this.ball, this.bricks.grid));
       if (this.ball.isBelowScreen()) return;
     }
   }
 
-  handleBrickHits(bricks) {
-    if (bricks.length === 0) return;
+  barrierY() {
+    return this.world.height - CONFIG.barrier.offset;
+  }
 
-    for (const brick of bricks) {
-      this.score += CONFIG.bricks.points;
+  handleBrickHits(hits) {
+    if (hits.length === 0) return;
+
+    for (const { brick, damage, destroyed } of hits) {
+      this.score += CONFIG.bricks.points * damage;
+      if (!destroyed) {
+        this.particles.burst(brick.x, brick.y, brick.width, brick.height, brick.color, 0.35);
+        continue;
+      }
       this.particles.burst(brick.x, brick.y, brick.width, brick.height, brick.color);
       if (Math.random() < CONFIG.powerUps.dropChance) {
         this.powerUps.push(new PowerUp(brick.x + brick.width / 2, brick.y + brick.height / 2, this.world));
@@ -134,7 +145,8 @@ class Game {
       this.lives++;
       this.updateHud();
     } else {
-      this.effectsUntil[type] = now + CONFIG.effects.durationMs;
+      const { durationMs = CONFIG.effects.durationMs } = CONFIG.powerUps.types.find(t => t.type === type) ?? {};
+      this.effectsUntil[type] = now + durationMs;
     }
   }
 
@@ -145,6 +157,7 @@ class Game {
     this.paddle.setScale((active('expand') ? expandScale : 1) * (active('shrink') ? shrinkScale : 1));
     this.ball.speedScale = (active('fast') ? fastScale : 1) * (active('slow') ? slowScale : 1);
     this.ball.fireball = active('fireball');
+    this.barrierRemaining = Math.max(0, (this.effectsUntil.barrier ?? 0) - now);
   }
 
   loseLife() {
@@ -162,11 +175,32 @@ class Game {
     this.bricks.draw(this.ctx);
     this.particles.draw(this.ctx);
     this.powerUps.forEach(p => p.draw(this.ctx));
+    this.drawBarrier();
     this.paddle.draw(this.ctx);
     this.ball.draw(this.ctx);
 
     const message = this.currentMessage();
     if (message) this.drawMessage(message);
+  }
+
+  drawBarrier() {
+    const { color, blinkMs } = CONFIG.barrier;
+    if (!(this.barrierRemaining > 0) || (this.state !== 'playing' && this.state !== 'ready')) return;
+    if (this.barrierRemaining < blinkMs && Math.floor(this.barrierRemaining / 150) % 2 === 0) return;
+
+    const y = this.barrierY();
+    this.ctx.save();
+    this.ctx.globalCompositeOperation = 'lighter';
+    this.ctx.strokeStyle = color;
+    for (const [lineWidth, alpha] of [[10, 0.12], [5, 0.25], [1.5, 1]]) {
+      this.ctx.globalAlpha = alpha;
+      this.ctx.lineWidth = lineWidth;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, y);
+      this.ctx.lineTo(this.world.width, y);
+      this.ctx.stroke();
+    }
+    this.ctx.restore();
   }
 
   currentMessage() {

@@ -32,7 +32,14 @@ the next one. Score and lives carry over, and the ball gets
 back to level 1.
 
 Levels are text maps in `CONFIG.levels.maps`: `#` is a brick, `.` is a gap, and
-each row gets the next brick color. All rows of a map must be the same length.
+each row gets the next brick color. A digit is an armored brick that takes that
+many hits (`3` is used in levels 2 to 5). All rows of a map must be the same
+length.
+
+Armored bricks are silver with corner bolts. They show cracks after the first
+hit, heavier cracks and a chipped corner after the second, and break on the
+third. Every hit scores, but power-ups only drop when a brick breaks. A fireball
+breaks armor in one hit.
 
 ```
 name: 'Diamond',
@@ -74,18 +81,21 @@ brick-breaker/
 ```
 
 ## Power-ups
-Destroyed bricks may drop a power-up (`CONFIG.powerUps.dropChance`).
+Destroyed bricks may drop a power-up (`CONFIG.powerUps.dropChance`). Each type
+has a `weight` that sets how often it drops.
 
-| Type        | Effect                                    |
-|-------------|-------------------------------------------|
-| `expand`    | wider paddle                              |
-| `shrink`    | narrower paddle                           |
-| `fast`      | faster ball                               |
-| `slow`      | slower ball                               |
-| `fireball`  | ball destroys bricks without bouncing     |
-| `extraLife` | +1 life                                   |
+| Type        | Effect                                          | Drop odds |
+|-------------|-------------------------------------------------|-----------|
+| `expand`    | wider paddle                                    | 20%       |
+| `slow`      | slower ball                                     | 20%       |
+| `shrink`    | narrower paddle                                 | 13%       |
+| `fast`      | faster ball                                     | 13%       |
+| `fireball`  | ball breaks bricks (and armor) without bouncing | 13%       |
+| `barrier`   | a line below the paddle bounces the ball back up for 10 s; it blinks before it ends | 13% |
+| `extraLife` | +1 life                                         | 7%        |
 
-Timed effects last `CONFIG.effects.durationMs`. Collecting the same one again
+Timed effects last `CONFIG.effects.durationMs` (5 s) unless the type sets its own
+`durationMs`. Collecting the same one again
 restarts its timer instead of stacking. Losing a life clears all effects.
 
 The ball's base speed is `CONFIG.ball.speed`; `fast` and `slow` multiply it (x1.5,

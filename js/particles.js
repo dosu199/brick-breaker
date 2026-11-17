@@ -9,10 +9,10 @@ class Particles {
     this.rings = [];
   }
 
-  burst(x, y, width, height, color) {
+  burst(x, y, width, height, color, strength = 1) {
     const { count, speed, life, minSize, maxSize, sparkChance, max, ringLife, ringScale } = CONFIG.particles;
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < Math.round(count * strength); i++) {
       const angle = Math.random() * Math.PI * 2;
       const velocity = speed * (0.3 + Math.random() * 0.7);
       const particleLife = life * (0.6 + Math.random() * 0.4);
@@ -28,6 +28,7 @@ class Particles {
       });
     }
     if (this.sparks.length > max) this.sparks.splice(0, this.sparks.length - max);
+    if (strength < 1) return;
 
     this.rings.push({
       x: x + width / 2,

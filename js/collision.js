@@ -42,8 +42,8 @@ const Collision = {
         const overlap = this.circleRect(ball, brick);
         if (!overlap) continue;
 
-        brick.alive = false;
-        hits.push(brick);
+        const damage = brick.hit(ball.fireball ? brick.hitsLeft : 1);
+        hits.push({ brick, damage, destroyed: !brick.alive });
 
         if (ball.fireball) continue;
 
@@ -56,6 +56,13 @@ const Collision = {
       }
     }
     return hits;
+  },
+
+  ballBarrier(ball, barrierY) {
+    if (ball.dy <= 0 || ball.y + ball.radius < barrierY) return false;
+    ball.y = barrierY - ball.radius;
+    ball.dy = -ball.dy;
+    return true;
   },
 
   paddlePowerUp(powerUp, paddle) {

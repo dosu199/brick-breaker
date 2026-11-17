@@ -3,6 +3,8 @@ Assets.load([
   CONFIG.ball.image,
   CONFIG.ball.fireballImage,
   CONFIG.bricks.image,
+  CONFIG.bricks.armorImage,
+  ...CONFIG.bricks.crackImages,
   ...CONFIG.powerUps.types.map(t => t.image),
 ]);
 

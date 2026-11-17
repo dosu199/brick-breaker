@@ -1,25 +1,46 @@
 const MIN_BRICK_HEIGHT = 8;
 
 class Brick {
-  constructor(x, y, width, height, color) {
+  constructor(x, y, width, height, color, hits = 1) {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
     this.color = color;
+    this.maxHits = hits;
+    this.hitsLeft = hits;
     this.alive = true;
+  }
+
+  isArmored() {
+    return this.maxHits > 1;
+  }
+
+  hit(damage = 1) {
+    const dealt = Math.min(damage, this.hitsLeft);
+    this.hitsLeft -= dealt;
+    if (this.hitsLeft <= 0) this.alive = false;
+    return dealt;
+  }
+
+  crackStage() {
+    const damage = this.maxHits - this.hitsLeft;
+    if (damage === 0) return 0;
+    const stages = CONFIG.bricks.crackImages.length;
+    return Math.min(stages, Math.ceil((damage / (this.maxHits - 1)) * stages));
   }
 
   draw(ctx) {
     if (!this.alive) return;
 
     const panel = Assets.get(CONFIG.bricks.image);
-    const key = `brick|${this.color}|${panel ? 'sprite' : 'shape'}`;
+    const stage = this.crackStage();
+    const key = `brick|${this.color}|${this.maxHits}|${stage}|${panel ? 'sprite' : 'shape'}`;
     drawCached(ctx, key, this.x, this.y, this.width, this.height, CONFIG.bricks.glowBlur,
-      (target, x, y) => this.paint(target, x, y, panel));
+      (target, x, y) => this.paint(target, x, y, panel, stage));
   }
 
-  paint(ctx, x, y, panel) {
+  paint(ctx, x, y, panel, stage = 0) {
     withGlow(ctx, this.color, CONFIG.bricks.glowBlur, () => {
       ctx.fillStyle = this.color;
       ctx.beginPath();
@@ -27,7 +48,12 @@ class Brick {
       ctx.fill();
     });
 
-    if (panel) ctx.drawImage(panel, x, y, this.width, this.height);
+    const overlays = [panel];
+    if (this.isArmored()) overlays.push(Assets.get(CONFIG.bricks.armorImage));
+    if (stage > 0) overlays.push(Assets.get(CONFIG.bricks.crackImages[stage - 1]));
+    for (const image of overlays) {
+      if (image) ctx.drawImage(image, x, y, this.width, this.height);
+    }
   }
 }
 
@@ -49,12 +75,17 @@ class Bricks {
     this.cols = Math.max(...this.map.map(line => line.length));
 
     this.grid = this.map.map((line, row) =>
-      Array.from({ length: this.cols }, (_, col) => line[col] === '#'
-        ? new Brick(0, 0, 0, this.brickHeight, this.colors[row % this.colors.length])
-        : null)
+      Array.from({ length: this.cols }, (_, col) => this.createBrick(line[col], row))
     );
     this.layout();
     return this.grid;
+  }
+
+  createBrick(cell, row) {
+    if (cell === '#') return new Brick(0, 0, 0, this.brickHeight, this.colors[row % this.colors.length]);
+    const hits = Number(cell);
+    if (hits > 0) return new Brick(0, 0, 0, this.brickHeight, CONFIG.bricks.armorColor, hits);
+    return null;
   }
 
   layout() {

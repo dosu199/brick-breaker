@@ -49,6 +49,15 @@ const CONFIG = {
     colors: ['#ff2e88', '#b14bff', '#5b6cff', '#00c2ff', '#00e0b8'],
     image: 'img/brick.svg',
     glowBlur: 10,
+    armorColor: '#cbd5e1',
+    armorImage: 'img/brick-armor.svg',
+    crackImages: ['img/brick-crack-1.svg', 'img/brick-crack-2.svg'],
+  },
+
+  barrier: {
+    offset: 4,
+    color: '#2dd4bf',
+    blinkMs: 2000,
   },
 
   lives: 3,
@@ -83,8 +92,8 @@ const CONFIG = {
       {
         name: 'Pyramid',
         rows: [
-          '.......##.......',
-          '......####......',
+          '.......33.......',
+          '......3333......',
           '.....######.....',
           '....########....',
           '...##########...',
@@ -96,15 +105,15 @@ const CONFIG = {
       {
         name: 'Diamond',
         rows: [
-          '.......####.......',
+          '.......3333.......',
           '......######......',
           '.....########.....',
           '....##########....',
-          '..######..######..',
+          '..#####3..3#####..',
           '....##########....',
           '.....########.....',
           '......######......',
-          '.......####.......',
+          '.......3333.......',
         ],
       },
       {
@@ -112,8 +121,8 @@ const CONFIG = {
         rows: [
           '##..##..##..##..##',
           '##..##..##..##..##',
-          '..##..##..##..##..',
-          '..##..##..##..##..',
+          '..##..33..##..33..',
+          '..##..33..##..33..',
           '##..##..##..##..##',
           '##..##..##..##..##',
           '..##..##..##..##..',
@@ -123,7 +132,7 @@ const CONFIG = {
       {
         name: 'Invader',
         rows: [
-          '#################',
+          '33333333333333333',
           '.#.#.#.#.#.#.#.#.',
           '.....#.....#.....',
           '......#...#......',
@@ -144,12 +153,13 @@ const CONFIG = {
     fallSpeed: 2,
     glowBlur: 12,
     types: [
-      { type: 'expand', color: '#4ade80', image: 'img/pu-expand.svg' },
-      { type: 'shrink', color: '#fb7185', image: 'img/pu-shrink.svg' },
-      { type: 'fast', color: '#c084fc', image: 'img/pu-fast.svg' },
-      { type: 'slow', color: '#38bdf8', image: 'img/pu-slow.svg' },
-      { type: 'extraLife', color: '#f472b6', image: 'img/pu-extraLife.svg' },
-      { type: 'fireball', color: '#fb923c', image: 'img/pu-fireball.svg' },
+      { type: 'expand', weight: 3, color: '#4ade80', image: 'img/pu-expand.svg' },
+      { type: 'shrink', weight: 2, color: '#fb7185', image: 'img/pu-shrink.svg' },
+      { type: 'fast', weight: 2, color: '#c084fc', image: 'img/pu-fast.svg' },
+      { type: 'slow', weight: 3, color: '#38bdf8', image: 'img/pu-slow.svg' },
+      { type: 'extraLife', weight: 1, color: '#f472b6', image: 'img/pu-extraLife.svg' },
+      { type: 'fireball', weight: 2, color: '#fb923c', image: 'img/pu-fireball.svg' },
+      { type: 'barrier', weight: 2, color: '#2dd4bf', image: 'img/pu-barrier.svg', durationMs: 10000 },
     ],
   },
 

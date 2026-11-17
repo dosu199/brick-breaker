@@ -4,12 +4,12 @@ const { loadScripts, createDrawingContext } = require('./helpers');
 
 const WORLD = { width: 700, height: 400 };
 const WALL = Array(5).fill('############');
-const countBricks = rows => rows.join('').split('#').length - 1;
+const countBricks = rows => rows.join('').replaceAll('.', '').length;
 
 const FILES = ['config.js', 'assets.js', 'render.js', 'starfield.js', 'input.js', 'paddle.js', 'ball.js', 'bricks.js', 'collision.js', 'powerup.js', 'particles.js', 'game.js'];
 
 function load(globals = {}) {
-  return loadScripts(FILES, ['CONFIG', 'Assets', 'Ball', 'Bricks', 'Collision', 'Game', 'Paddle', 'PowerUp', 'Starfield'], { Math, window: { addEventListener() {} }, ...globals });
+  return loadScripts(FILES, ['CONFIG', 'Assets', 'Ball', 'Bricks', 'Collision', 'Game', 'Paddle', 'Particles', 'PowerUp', 'Starfield'], { Math, window: { addEventListener() {} }, ...globals });
 }
 
 function createGame(exports) {
@@ -45,7 +45,8 @@ test('a normal ball bounces off the first brick it hits', () => {
   const hits = Collision.ballBricks(ball, bricks.grid);
 
   assert.equal(hits.length, 1);
-  assert.equal(hits[0], target);
+  assert.equal(hits[0].brick, target);
+  assert.equal(hits[0].destroyed, true);
   assert.equal(target.alive, false);
   assert.equal(ball.dy, 5);
 });
@@ -61,7 +62,7 @@ test('a fireball destroys every brick it touches without bouncing', () => {
   const hits = Collision.ballBricks(ball, bricks.grid);
 
   assert.equal(hits.length, 2);
-  assert.ok(hits[0] === left && hits[1] === right);
+  assert.ok(hits[0].brick === left && hits[1].brick === right);
   assert.equal(ball.dy, -5);
 });
 
@@ -306,7 +307,7 @@ test('every level map is a rectangle with at least one brick', () => {
   assert.equal(CONFIG.levels.maps.length, 5);
   for (const { name, rows } of CONFIG.levels.maps) {
     assert.ok(rows.length > 0, name);
-    assert.ok(rows.every(row => row.length === rows[0].length && /^[#.]+$/.test(row)), `${name} rows must be equal length and only # or .`);
+    assert.ok(rows.every(row => row.length === rows[0].length && /^[#.1-9]+$/.test(row)), `${name} rows must be equal length and only #, . or a hit count`);
     assert.ok(countBricks(rows) > 0, name);
   }
 });
@@ -377,7 +378,8 @@ test('breaking a brick bursts particles in its color, and a new level clears the
   const game = createGame(exports);
   const brick = game.bricks.grid[0][0];
 
-  game.handleBrickHits([brick]);
+  brick.hit();
+  game.handleBrickHits([{ brick, damage: 1, destroyed: true }]);
 
   assert.equal(game.particles.rings.length, 1);
   assert.equal(game.particles.rings[0].color, brick.color);
@@ -443,4 +445,95 @@ test('a very fast ball cannot skip through the paddle in one frame', () => {
   assert.ok(ball.dy < 0, 'the ball bounces off the paddle');
   assert.ok(ball.y <= paddle.y, 'and stays above it');
   assert.equal(game.lives, exports.CONFIG.lives);
+});
+
+test('a 3 in a level map is an armored brick with three hit points', () => {
+  const { CONFIG, Bricks } = load();
+  const bricks = new Bricks({ ...WORLD }, ['#3']);
+  const [normal, armored] = bricks.grid[0];
+
+  assert.equal(normal.maxHits, 1);
+  assert.equal(armored.maxHits, 3);
+  assert.equal(armored.isArmored(), true);
+  assert.equal(armored.color, CONFIG.bricks.armorColor);
+});
+
+test('an armored brick cracks on the first two hits and breaks on the third', () => {
+  const exports = load();
+  const { CONFIG } = exports;
+  CONFIG.powerUps.dropChance = 1;
+  const game = createGame(exports);
+  const armored = new exports.Bricks({ ...WORLD }, ['3']).grid[0][0];
+  const stages = [];
+
+  for (let hit = 1; hit <= 3; hit++) {
+    stages.push(armored.crackStage());
+    const damage = armored.hit();
+    game.handleBrickHits([{ brick: armored, damage, destroyed: !armored.alive }]);
+    if (hit < 3) {
+      assert.equal(armored.alive, true, `still standing after hit ${hit}`);
+      assert.equal(game.powerUps.length, 0, 'no power-up until it breaks');
+    }
+  }
+
+  assert.deepEqual(stages, [0, 1, 2], 'new, cracked, heavily cracked');
+  assert.equal(armored.alive, false);
+  assert.equal(game.score, 3 * CONFIG.bricks.points, 'every hit scores');
+  assert.equal(game.powerUps.length, 1, 'a power-up can drop once it breaks');
+  assert.equal(game.particles.rings.length, 1, 'only the final hit gets the full explosion');
+});
+
+test('a fireball breaks an armored brick in one hit', () => {
+  const { Ball, Bricks, Collision } = load();
+  const bricks = new Bricks({ ...WORLD }, ['3']);
+  const armored = bricks.grid[0][0];
+  const ball = new Ball({ ...WORLD });
+  Object.assign(ball, { x: armored.x + armored.width / 2, y: armored.y + armored.height / 2, dx: 0, dy: -5, fireball: true });
+
+  const [hit] = Collision.ballBricks(ball, bricks.grid);
+
+  assert.deepEqual({ damage: hit.damage, destroyed: hit.destroyed }, { damage: 3, destroyed: true });
+});
+
+test('the barrier bounces a falling ball for ten seconds, then disappears', () => {
+  const exports = load();
+  const game = createGame(exports);
+  clickAndStep(game);
+  const drop = () => {
+    Object.assign(game.ball, { x: 5, y: game.world.height - 30, dx: 0, dy: 20 });
+  };
+
+  game.collectPowerUp('barrier', 0);
+  drop();
+  game.update(9000);
+  assert.ok(game.ball.dy < 0, 'the ball bounces off the barrier');
+  assert.ok(game.ball.y + game.ball.radius <= game.barrierY());
+  assert.equal(game.lives, exports.CONFIG.lives);
+
+  drop();
+  for (let i = 0; i < 5; i++) game.update(10001);
+  assert.equal(game.lives, exports.CONFIG.lives - 1, 'after it expires the ball can fall again');
+});
+
+test('extra lives are now the rarest power-up', () => {
+  const { CONFIG, PowerUp } = load();
+  const { types } = CONFIG.powerUps;
+  const total = types.reduce((sum, t) => sum + t.weight, 0);
+  const extraLife = types.find(t => t.type === 'extraLife');
+
+  assert.ok(extraLife.weight / total < 0.1, 'under 10% of drops');
+  assert.ok(types.every(t => t === extraLife || t.weight > extraLife.weight));
+
+  assert.equal(PowerUp.pickType(types, 0).type, types[0].type);
+  assert.equal(PowerUp.pickType(types, 0.9999).type, types.at(-1).type);
+});
+
+test('a partial hit chips a few sparks without the shockwave ring', () => {
+  const { CONFIG, Particles } = load();
+  const particles = new Particles();
+
+  particles.burst(0, 0, 10, 10, 'red', 0.35);
+
+  assert.equal(particles.sparks.length, Math.round(CONFIG.particles.count * 0.35));
+  assert.equal(particles.rings.length, 0);
 });

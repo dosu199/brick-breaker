@@ -30,6 +30,8 @@ function createDrawingContext() {
     },
     fillText() {},
     stroke() {},
+    moveTo() {},
+    lineTo() {},
     setTransform() {},
     getTransform() {
       return { a: 1, b: 0 };
