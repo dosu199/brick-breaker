@@ -166,7 +166,7 @@ const CONFIG = {
       { type: 'fast', rarity: 'common', color: '#c084fc', image: 'img/pu-fast.svg' },
       { type: 'magnet', rarity: 'uncommon', color: '#facc15', image: 'img/pu-magnet.svg', durationMs: 8000 },
       { type: 'reverse', rarity: 'uncommon', color: '#ef4444', image: 'img/pu-reverse.svg' },
-      { type: 'fireball', rarity: 'rare', color: '#fb923c', image: 'img/pu-fireball.svg' },
+      { type: 'fireball', rarity: 'uncommon', color: '#fb923c', image: 'img/pu-fireball.svg' },
       { type: 'barrier', rarity: 'rare', color: '#2dd4bf', image: 'img/pu-barrier.svg', durationMs: 10000 },
       { type: 'extraLife', rarity: 'epic', color: '#f472b6', image: 'img/pu-extraLife.svg' },
     ],

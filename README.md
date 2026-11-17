@@ -86,14 +86,14 @@ each type drops depends on its `rarity`: the stronger the advantage, the rarer.
 
 | Rarity   | Weight | Type        | Effect                                                   | Drop odds |
 |----------|--------|-------------|----------------------------------------------------------|-----------|
-| common   | 4      | `expand`    | wider paddle                                             | 16% each  |
+| common   | 4      | `expand`    | wider paddle                                             | 15% each  |
 |          |        | `slow`      | slower ball                                              |           |
 |          |        | `shrink`    | narrower paddle (bad)                                    |           |
 |          |        | `fast`      | faster ball (bad)                                        |           |
 | uncommon | 2.5    | `magnet`    | falling power-ups drift toward the paddle for 8 s        | 10% each  |
 |          |        | `reverse`   | paddle mirrors the mouse for 5 s, glowing red (bad)      |           |
-| rare     | 1.5    | `fireball`  | ball breaks bricks (and armor) without bouncing          | 6% each   |
-|          |        | `barrier`   | a line below the paddle bounces the ball for 10 s        |           |
+|          |        | `fireball`  | ball breaks bricks (and armor) without bouncing          |           |
+| rare     | 1.5    | `barrier`   | a line below the paddle bounces the ball for 10 s        | 6%        |
 | epic     | 1      | `extraLife` | +1 life                                                  | 4%        |
 
 Timed effects last `CONFIG.effects.durationMs` (5 s) unless the type sets its own

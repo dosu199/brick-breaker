@@ -524,8 +524,8 @@ test('stronger power-ups are rarer', () => {
 
   assert.ok(rarity.common > rarity.uncommon && rarity.uncommon > rarity.rare && rarity.rare > rarity.epic);
   assert.equal(tierOf('extraLife'), 'epic');
-  assert.deepEqual([tierOf('fireball'), tierOf('barrier')], ['rare', 'rare']);
-  assert.deepEqual([tierOf('magnet'), tierOf('reverse')], ['uncommon', 'uncommon']);
+  assert.equal(tierOf('barrier'), 'rare');
+  assert.deepEqual([tierOf('magnet'), tierOf('reverse'), tierOf('fireball')], ['uncommon', 'uncommon', 'uncommon']);
   assert.ok(types.every(t => PowerUp.weight(t) > 0), 'every type has a known rarity');
   assert.ok(odds('extraLife') < 0.05, 'extra life under 5% of drops');
 
