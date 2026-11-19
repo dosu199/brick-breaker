@@ -1,0 +1,14 @@
+{
+  "name": "brick-breaker-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tauri desktop wrapper for Brick Breaker. Reads the game from the parent folder; never changes it.",
+  "license": "MIT",
+  "scripts": {
+    "build:web": "node scripts/copy-web.mjs",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

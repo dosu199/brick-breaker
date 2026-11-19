@@ -75,7 +75,11 @@ class Bricks {
     this.cols = Math.max(...this.map.map(line => line.length));
 
     this.grid = this.map.map((line, row) =>
-      Array.from({ length: this.cols }, (_, col) => this.createBrick(line[col], row))
+      Array.from({ length: this.cols }, (_, col) => {
+        const brick = this.createBrick(line[col], row);
+        if (brick) Object.assign(brick, { row, col });
+        return brick;
+      })
     );
     this.layout();
     return this.grid;
@@ -101,7 +105,8 @@ class Bricks {
     const gridWidth = this.cols * this.brickWidth + gaps * this.gap;
     const left = (this.world.width - gridWidth) / 2;
 
-    const maxGridHeight = this.world.height * CONFIG.bricks.maxGridHeightRatio - this.y;
+    const paddleTop = this.world.height - CONFIG.paddle.height - CONFIG.paddle.bottomMargin;
+    const maxGridHeight = paddleTop - CONFIG.bricks.minPaddleGap - this.y;
     this.rowHeight = Math.max(MIN_BRICK_HEIGHT, Math.min(this.brickHeight, maxGridHeight / this.rows - this.padding));
 
     this.grid.forEach((row, rowIndex) => {
@@ -113,6 +118,18 @@ class Bricks {
         brick.height = this.rowHeight;
       });
     });
+  }
+
+  // The up to 8 live bricks touching this one.
+  neighbors(brick) {
+    const found = [];
+    for (let row = brick.row - 1; row <= brick.row + 1; row++) {
+      for (let col = brick.col - 1; col <= brick.col + 1; col++) {
+        const other = this.grid[row]?.[col];
+        if (other?.alive && other !== brick) found.push(other);
+      }
+    }
+    return found;
   }
 
   remaining() {

@@ -9,14 +9,27 @@ class Hud {
     this.levelName = root.querySelector('#level-name');
     this.levelTrack = root.querySelector('#level-track');
     this.lives = root.querySelector('#lives');
+    this.relics = root.querySelector('#relics');
     this.last = {};
   }
 
-  update({ score, level, levelCount, levelName, lives }) {
+  update({ score, level, levelCount, levelName, lives, relics = [] }) {
     this.updateScore(score);
     this.updateLevel(level, levelCount, levelName);
     this.updateLives(lives);
+    this.updateRelics(relics);
     this.last = { score, lives };
+  }
+
+  updateRelics(relics) {
+    const chips = relics.map(({ name, color, stacks }) => {
+      const chip = document.createElement('span');
+      chip.className = 'relic';
+      chip.style.setProperty('--relic', color);
+      chip.textContent = stacks > 1 ? `${name} ×${stacks}` : name;
+      return chip;
+    });
+    this.relics.replaceChildren(...chips);
   }
 
   updateScore(score) {

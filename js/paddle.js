@@ -6,6 +6,8 @@ class Paddle {
     this.x = (world.width - this.width) / 2;
     this.color = CONFIG.paddle.color;
     this.reversed = false;
+    // smoothed movement per tick; positive is to the right
+    this.velocity = 0;
   }
 
   get y() {
@@ -19,7 +21,11 @@ class Paddle {
   update(input) {
     const mouseX = this.reversed ? this.world.width - input.mouseX : input.mouseX;
     const maxX = this.world.width - this.width;
+    const previousX = this.x;
     this.x = Math.max(0, Math.min(maxX, mouseX - this.width / 2));
+
+    const { paddleSmoothing } = CONFIG.spin;
+    this.velocity = this.velocity * paddleSmoothing + (this.x - previousX) * (1 - paddleSmoothing);
   }
 
   draw(ctx) {

@@ -42,16 +42,21 @@ const Collision = {
         const overlap = this.circleRect(ball, brick);
         if (!overlap) continue;
 
-        const damage = brick.hit(ball.fireball ? brick.hitsLeft : 1);
+        // a Ricochet charge adds a point of damage and lets the ball smash
+        // through a brick it breaks instead of bouncing
+        const charged = !ball.fireball && ball.charges > 0;
+        if (charged) ball.charges--;
+        const damage = brick.hit(ball.fireball ? brick.hitsLeft : ball.damage + (charged ? 1 : 0));
         hits.push({ brick, damage, destroyed: !brick.alive });
 
-        if (ball.fireball) continue;
+        if (ball.fireball || (charged && !brick.alive)) continue;
 
         if (Math.abs(overlap.distX) > Math.abs(overlap.distY)) {
           ball.dx = -ball.dx;
         } else {
           ball.dy = -ball.dy;
         }
+        ball.spin = 0; // bouncing off a brick ends a curve
         return hits;
       }
     }

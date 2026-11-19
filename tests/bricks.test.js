@@ -8,11 +8,11 @@ const NoopEntity = class {
   setScale() {}
 };
 
-const WORLD = { width: 700, height: 400 };
+const WORLD = { width: 800, height: 960 };
 const WALL = Array(5).fill('############');
 
 function loadClasses() {
-  return loadScripts(['config.js', 'assets.js', 'render.js', 'bricks.js', 'particles.js', 'game.js'], ['CONFIG', 'Brick', 'Bricks', 'Game'], {
+  return loadScripts(['config.js', 'assets.js', 'render.js', 'bricks.js', 'particles.js', 'relics.js', 'game.js'], ['CONFIG', 'Brick', 'Bricks', 'Game'], {
     Input: class { consumeLaunch() { return false; } },
     Paddle: NoopEntity,
     Ball: NoopEntity,
@@ -51,7 +51,7 @@ test('construction builds bricks from the level map and leaves gaps empty', () =
 
 test('build uses instance settings, cycles colors, and resets the board', () => {
   const { Bricks } = loadClasses();
-  const bricks = new Bricks({ width: 67, height: 400 }, ['##', '##', '##']);
+  const bricks = new Bricks({ width: 67, height: 960 }, ['##', '##', '##']);
   const oldBrick = bricks.grid[0][0];
   oldBrick.alive = false;
   Object.assign(bricks, {
@@ -101,16 +101,17 @@ test('on resize the grid fills the width with proportional gaps, keeping destroy
   assert.ok(Math.abs(first.x - (world.width - (last.x + last.width))) < 1e-9, 'and the grid stays centered');
 });
 
-test('on a short screen bricks get shorter so the grid uses at most half the height', () => {
+test('maps with many rows get thinner bricks so the gap above the paddle is kept', () => {
   const { CONFIG, Bricks } = loadClasses();
   const rows = Array(10).fill('####');
-  const tall = new Bricks({ width: 700, height: 2000 }, rows);
-  const short = new Bricks({ width: 700, height: 400 }, rows);
+  const tall = new Bricks({ width: 800, height: 3000 }, rows);
+  const short = new Bricks({ width: 800, height: 960 }, Array(20).fill('####'));
 
   assert.equal(tall.grid[0][0].height, CONFIG.bricks.height, 'full height when there is room');
   const bottom = short.grid.at(-1)[0];
   assert.ok(bottom.height < CONFIG.bricks.height);
-  assert.ok(bottom.y + bottom.height <= 400 * CONFIG.bricks.maxGridHeightRatio);
+  const paddleTop = 960 - CONFIG.paddle.height - CONFIG.paddle.bottomMargin;
+  assert.ok(paddleTop - (bottom.y + bottom.height) >= CONFIG.bricks.minPaddleGap - 1e-9);
 });
 
 test('a brick draws itself only while alive', () => {

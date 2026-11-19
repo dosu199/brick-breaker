@@ -7,25 +7,33 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <header id="hud">
+  <!-- The play field sits in the middle at a fixed portrait size; the panels
+       fill the space on either side of it. -->
+  <aside class="panel panel-left">
     <div class="stat">
       <span class="label">Score</span>
       <span id="score"><span id="score-zeros">00000</span><span id="score-value">0</span></span>
     </div>
-    <div class="stat stat-center">
-      <span class="label">Level <span id="level-name"></span></span>
+    <div class="stat">
+      <span class="label">Level</span>
+      <span id="level-name"></span>
       <div id="level-track"></div>
     </div>
-    <div class="stat stat-right">
-      <div class="stat lives-stat">
-        <span class="label">Lives</span>
-        <div id="lives" role="img"></div>
-      </div>
-      <span id="hint"><kbd>F</kbd> Fullscreen</span>
-    </div>
-  </header>
+  </aside>
 
   <canvas id="game"></canvas>
+
+  <aside class="panel panel-right">
+    <div class="stat">
+      <span class="label">Lives</span>
+      <div id="lives" role="img"></div>
+    </div>
+    <div class="stat">
+      <span class="label">Relics</span>
+      <div id="relics"></div>
+    </div>
+    <span id="hint"><kbd>F</kbd> Fullscreen</span>
+  </aside>
 
   <script src="js/config.js"></script>
   <script src="js/assets.js"></script>
@@ -38,6 +46,7 @@
   <script src="js/collision.js"></script>
   <script src="js/powerup.js"></script>
   <script src="js/particles.js"></script>
+  <script src="js/relics.js"></script>
   <script src="js/hud.js"></script>
   <script src="js/game.js"></script>
   <script src="js/main.js"></script>

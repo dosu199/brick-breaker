@@ -1,0 +1,5 @@
+node_modules/
+# copied from the game on every build
+dist/
+src-tauri/target/
+src-tauri/gen/

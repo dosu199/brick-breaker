@@ -10,6 +10,10 @@ function fakeElement() {
     children: [],
     attributes: {},
     offsetWidth: 0,
+    style: {
+      props: {},
+      setProperty(name, value) { this.props[name] = value; },
+    },
     replaceChildren(...children) {
       this.children = children;
     },
@@ -69,6 +73,18 @@ test('lives show one heart each, capped with a +n counter', () => {
   assert.equal(icons.filter(c => c.className === 'life').length, 5);
   assert.equal(icons.at(-1).textContent, '+2');
   assert.equal(el('lives').attributes['aria-label'], '7 lives');
+});
+
+test('owned relics show as chips, with a count once stacked', () => {
+  const { hud, el } = createHud();
+
+  hud.update({ ...STATE, relics: [
+    { id: 'wide', name: 'Wide Paddle', color: '#4ade80', stacks: 1 },
+    { id: 'greed', name: 'Greed', color: '#f472b6', stacks: 2 },
+  ] });
+
+  assert.deepEqual(el('relics').children.map(c => c.textContent), ['Wide Paddle', 'Greed ×2']);
+  assert.equal(el('relics').children[1].style.props['--relic'], '#f472b6');
 });
 
 test('the score bumps when it goes up and the lives shake when one is lost', () => {

@@ -6,10 +6,10 @@ const WORLD = { width: 700, height: 400 };
 const WALL = Array(5).fill('############');
 const countBricks = rows => rows.join('').replaceAll('.', '').length;
 
-const FILES = ['config.js', 'assets.js', 'render.js', 'starfield.js', 'input.js', 'paddle.js', 'ball.js', 'bricks.js', 'collision.js', 'powerup.js', 'particles.js', 'game.js'];
+const FILES = ['config.js', 'assets.js', 'render.js', 'starfield.js', 'input.js', 'paddle.js', 'ball.js', 'bricks.js', 'collision.js', 'powerup.js', 'particles.js', 'relics.js', 'game.js'];
 
 function load(globals = {}) {
-  return loadScripts(FILES, ['CONFIG', 'Assets', 'Ball', 'Bricks', 'Collision', 'Game', 'Paddle', 'Particles', 'PowerUp', 'Starfield'], { Math, window: { addEventListener() {} }, ...globals });
+  return loadScripts(FILES, ['CONFIG', 'Assets', 'Ball', 'Bricks', 'Collision', 'Game', 'Paddle', 'Particles', 'PowerUp', 'Relics', 'Starfield'], { Math, window: { addEventListener() {} }, ...globals });
 }
 
 function createGame(exports) {
@@ -140,35 +140,44 @@ test('clicking after game over starts a fresh game', () => {
   assert.equal(game.bricks.remaining(), countBricks(exports.CONFIG.levels.maps[0].rows));
 });
 
-test('the game scales with the window around the reference view size', () => {
+test('the game keeps its aspect ratio at any window size, letterboxing the rest', () => {
   const exports = load({ devicePixelRatio: 2 });
   const game = createGame(exports);
   const { CONFIG } = exports;
   const { view } = CONFIG;
   const resizeTo = (clientWidth, clientHeight) => {
-    Object.assign(game.canvas, { clientWidth, clientHeight });
+    Object.assign(game.canvas, { clientWidth, clientHeight, style: {} });
     game.resize();
   };
+  const sameWorld = () => assert.deepEqual({ ...game.world }, { width: view.width, height: view.height }, 'the game always sees the same world');
 
   resizeTo(view.width, view.height);
   assert.equal(game.viewScale, 1, 'the reference size is drawn 1:1');
-  assert.deepEqual({ ...game.world }, { width: view.width, height: view.height });
+  sameWorld();
 
   resizeTo(view.width * 1.5, view.height * 1.5);
   assert.equal(game.viewScale, 1.5, 'a bigger window scales everything up');
-  assert.deepEqual({ ...game.world }, { width: view.width, height: view.height }, 'the game sees the same world');
+  sameWorld();
   assert.equal(game.canvas.width, view.width * 1.5 * 2, 'backed by device pixels');
   assert.equal(game.scale, 1.5 * 2);
 
   resizeTo(view.width * 2, view.height * 1.2);
-  assert.equal(game.viewScale, 1.2, 'the tighter dimension decides, so nothing is cut off');
-  assert.equal(game.world.height, view.height);
-  assert.ok(game.world.width > view.width, 'a wider window shows a wider field');
+  assert.equal(game.viewScale, 1.2, 'a wide window: height decides, bars on the sides');
+  assert.equal(game.canvas.style.width, `${view.width * 1.2}px`);
+  assert.equal(game.canvas.style.height, `${view.height * 1.2}px`);
+  sameWorld();
 
-  resizeTo(view.width * 5, view.height * 5);
-  assert.equal(game.viewScale, view.maxScale, 'never zooms past the maximum');
+  resizeTo(view.width, view.height * 3);
+  assert.equal(game.viewScale, 1, 'a tall window: width decides, bars top and bottom');
+  assert.equal(game.canvas.style.height, `${view.height}px`);
+
+  resizeTo(3840, 2160);
+  assert.equal(game.viewScale, 2160 / view.height, 'no upper limit: a 4K screen is filled top to bottom');
+  assert.equal(game.canvas.height / game.canvas.width, view.height / view.width);
+
   resizeTo(view.width * 0.3, view.height * 0.3);
-  assert.equal(game.viewScale, view.minScale, 'never shrinks past the minimum');
+  assert.equal(game.viewScale, 0.3, 'and no lower limit either');
+  sameWorld();
 
   assert.equal(game.paddle.y, game.world.height - CONFIG.paddle.height - CONFIG.paddle.bottomMargin, 'paddle stays at the bottom');
   const first = game.bricks.grid.flat().find(Boolean);
@@ -302,6 +311,8 @@ function clearBoard(game) {
   }
 }
 
+const relic = (CONFIG, id) => CONFIG.relics.pool.find(r => r.id === id);
+
 test('every level map is a rectangle with at least one brick', () => {
   const { CONFIG } = load();
   assert.equal(CONFIG.levels.maps.length, 5);
@@ -322,16 +333,20 @@ test('clearing a level moves to the next one, keeping score and lives, with a fa
 
   clearBoard(game);
   game.update(0);
-  assert.equal(game.state, 'levelComplete');
+  assert.equal(game.state, 'upgrade');
+  game.offers = [relic(CONFIG, 'greed')];
 
-  clickAndStep(game);
+  clickAndStep(game, CONFIG.relics.pickDelayMs);
   assert.equal(game.level, 1);
   assert.equal(game.state, 'ready');
   assert.equal(game.score, 120);
   assert.equal(game.lives, 2, 'lives carry over');
   assert.equal(game.bricks.remaining(), countBricks(CONFIG.levels.maps[1].rows));
   assert.equal(game.ball.speed, CONFIG.ball.speed * (1 + CONFIG.levels.speedIncrease));
-  assert.deepEqual({ ...game.hud.state }, { score: 120, level: 1, levelCount: CONFIG.levels.maps.length, levelName: CONFIG.levels.maps[1].name, lives: 2 });
+  assert.deepEqual(JSON.parse(JSON.stringify(game.hud.state)), {
+    score: 120, level: 1, levelCount: CONFIG.levels.maps.length, levelName: CONFIG.levels.maps[1].name, lives: 2,
+    relics: [{ id: 'greed', name: 'Greed', color: relic(CONFIG, 'greed').color, stacks: 1 }],
+  });
 
   game.update(0);
   assert.equal(game.ball.dx, game.ball.speed, 'the ball launches at the level speed');

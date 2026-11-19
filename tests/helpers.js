@@ -28,7 +28,13 @@ function createDrawingContext() {
     fill() {
       if (this.path) this.rectangles.push({ ...this.path, color: this.fillStyle });
     },
-    fillText() {},
+    texts: [],
+    fillText(text) {
+      this.texts.push(text);
+    },
+    measureText(text) {
+      return { width: text.length * 8 };
+    },
     stroke() {},
     moveTo() {},
     lineTo() {},
